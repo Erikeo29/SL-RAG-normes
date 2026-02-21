@@ -46,9 +46,8 @@ elif "chat_messages" in st.session_state:
 
 
 # --- CSS + boutons de navigation ---
-@st.cache_data(ttl=3600)
 def load_custom_css(path: str) -> str:
-    """Charge le CSS et ajoute les boutons de navigation flottants."""
+    """Charge le CSS et retourne le HTML complet (CSS + boutons navigation)."""
     try:
         with open(path, encoding="utf-8") as f:
             css_content = f.read()
