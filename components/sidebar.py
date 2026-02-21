@@ -1,4 +1,4 @@
-"""Composant sidebar : langue, domaine, navigation, stats, annexes."""
+"""Composant sidebar : langue, navigation groupée par domaine, stats, annexes."""
 import streamlit as st
 
 from config import DOMAINS
@@ -31,64 +31,100 @@ def render_sidebar():
 
         st.markdown("---")
 
-        # Domaine (sans icônes)
-        domain_keys = list(DOMAINS.keys())
-        domain_labels = [t(f"domain_{d}") for d in domain_keys]
-        current_domain = st.session_state.get("domain", "medical")
-        domain_idx = (
-            domain_keys.index(current_domain)
-            if current_domain in domain_keys
-            else 0
-        )
-        selected_domain = st.radio(
-            t("domain_label"),
-            options=domain_labels,
-            index=domain_idx,
-            horizontal=True,
-            key="domain_radio",
-        )
-        new_domain = domain_keys[domain_labels.index(selected_domain)]
-        if new_domain != current_domain:
-            st.session_state.domain = new_domain
+        # Navigation par boutons groupés
+        current = st.session_state.get("current_page", "about")
+        domain = st.session_state.get("domain", "medical")
+
+        # À propos
+        if st.button(
+            t("page_about"),
+            type="primary" if current == "about" else "secondary",
+            use_container_width=True,
+            key="btn_about",
+        ):
+            st.session_state.current_page = "about"
             st.rerun()
 
         st.markdown("---")
 
-        # Navigation (pages principales)
-        st.subheader(t("sidebar_title"))
-        page_keys = ["about", "normes_medical", "normes_statistique", "chat"]
-        page_labels = [
-            t("page_about"),
+        # --- Médical ---
+        st.caption(t("section_medical"))
+
+        if st.button(
             t("page_normes_medical"),
-            t("page_normes_statistique"),
-            t("page_chat"),
-        ]
-        current = st.session_state.get("current_page", "about")
-        nav_idx = page_keys.index(current) if current in page_keys else 0
-        selected_page = st.radio(
-            "Page",
-            options=page_labels,
-            index=nav_idx,
-            label_visibility="collapsed",
-            key="nav_radio",
-        )
-        st.session_state.current_page = page_keys[page_labels.index(selected_page)]
+            type="primary" if current == "normes_medical" else "secondary",
+            use_container_width=True,
+            key="btn_normes_medical",
+        ):
+            st.session_state.current_page = "normes_medical"
+            st.session_state.domain = "medical"
+            st.rerun()
+
+        if st.button(
+            t("page_chat_medical"),
+            type=(
+                "primary"
+                if current == "chat" and domain == "medical"
+                else "secondary"
+            ),
+            use_container_width=True,
+            key="btn_chat_medical",
+        ):
+            st.session_state.current_page = "chat"
+            st.session_state.domain = "medical"
+            st.rerun()
 
         st.markdown("---")
 
-        # Stats base — domaine actif
-        collection_name = DOMAINS[new_domain]["collection"]
-        stats = get_db_stats(collection_name=collection_name)
-        domain_label = t(f"domain_{new_domain}")
-        st.subheader(f"{t('db_stats_title')} — {domain_label}")
-        col1, col2 = st.columns(2)
-        col1.metric(t("db_docs"), stats["documents"])
-        col2.metric(t("db_chunks"), stats["chunks"])
+        # --- Statistique ---
+        st.caption(t("section_statistique"))
 
-        if stats["sources"]:
-            with st.expander(t("db_indexed_docs")):
-                for src in stats["sources"]:
-                    st.caption(f"- {src}")
+        if st.button(
+            t("page_normes_statistique"),
+            type="primary" if current == "normes_statistique" else "secondary",
+            use_container_width=True,
+            key="btn_normes_statistique",
+        ):
+            st.session_state.current_page = "normes_statistique"
+            st.session_state.domain = "statistique"
+            st.rerun()
+
+        if st.button(
+            t("page_chat_statistique"),
+            type=(
+                "primary"
+                if current == "chat" and domain == "statistique"
+                else "secondary"
+            ),
+            use_container_width=True,
+            key="btn_chat_statistique",
+        ):
+            st.session_state.current_page = "chat"
+            st.session_state.domain = "statistique"
+            st.rerun()
+
+        st.markdown("---")
+
+        # Stats base (compact, les deux domaines)
+        all_stats = {}
+        for dom, cfg in DOMAINS.items():
+            all_stats[dom] = get_db_stats(collection_name=cfg["collection"])
+
+        st.caption(t("db_stats_title"))
+        for dom in DOMAINS:
+            label = t(f"section_{dom}")
+            s = all_stats[dom]
+            st.caption(
+                f"**{label}** — {s['documents']} docs · {s['chunks']} chunks"
+            )
+
+        with st.expander(t("db_indexed_docs")):
+            for dom in DOMAINS:
+                label = t(f"section_{dom}")
+                st.caption(f"**{label}**")
+                if all_stats[dom]["sources"]:
+                    for src in all_stats[dom]["sources"]:
+                        st.caption(f"- {src}")
 
         st.markdown("---")
 
@@ -107,7 +143,7 @@ def render_sidebar():
 
         st.markdown("---")
 
-        # Version (format projet 03)
+        # Version
         st.markdown(t("version_info"))
         st.markdown("")
         st.markdown(

@@ -53,6 +53,22 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "fr": "Normes statistiques",
         "en": "Statistical standards",
     },
+    "page_chat_medical": {
+        "fr": "Chat médical",
+        "en": "Medical chat",
+    },
+    "page_chat_statistique": {
+        "fr": "Chat statistique",
+        "en": "Statistical chat",
+    },
+    "section_medical": {
+        "fr": "Médical",
+        "en": "Medical",
+    },
+    "section_statistique": {
+        "fr": "Statistique",
+        "en": "Statistical",
+    },
     "annexes_title": {
         "fr": "Annexes",
         "en": "Annexes",
