@@ -68,6 +68,8 @@ Les normes ISO relatives aux méthodes statistiques sont regroupées dans le com
 - $\pm 2\sigma$ : 95,45 % de la population.
 - $\pm 3\sigma$ : 99,73 % de la population.
 
+<!-- IMG:normal_distribution_3sigma.png -->
+
 **Degré de liberté ($\nu$).** Le nombre de degrés de liberté est le nombre de valeurs indépendantes qui peuvent varier dans un calcul statistique. Pour l'écart-type d'un échantillon de taille $n$, le nombre de degrés de liberté est $\nu = n - 1$.
 
 **Vocabulaire lié aux non-conformités.** Il est important de distinguer :
@@ -175,6 +177,8 @@ Les règles de commutation entre les trois sévérités d'inspection sont défin
 
 **Arrêt de l'inspection.** Si, en inspection renforcée, 5 lots consécutifs restent refusés, l'inspection est suspendue et des actions correctives sont exigées avant reprise.
 
+<!-- IMG:switching_rules_diagram.png -->
+
 #### 2.1.7 Courbes d'efficacité (OC curves)
 
 La courbe d'efficacité (Operating Characteristic curve) donne la probabilité d'acceptation $P_a$ du lot en fonction de la proportion réelle de non-conformes $p$ dans le lot.
@@ -190,6 +194,8 @@ $$P_a(p) \approx \sum_{i=0}^{Ac} \frac{(np)^i}{i!} e^{-np}$$
 La courbe OC permet de visualiser :
 - Le **point NQA** : la proportion $p$ pour laquelle $P_a \approx 0{,}95$ (risque producteur $\alpha \approx 5\%$).
 - Le **point LQ** : la proportion $p$ pour laquelle $P_a \approx 0{,}10$ (risque consommateur $\beta \approx 10\%$).
+
+<!-- IMG:oc_curve_sampling.png -->
 
 #### 2.1.8 Risque du producteur ($\alpha$) et risque du consommateur ($\beta$)
 
@@ -385,6 +391,8 @@ $$\hat{\sigma} = \frac{\bar{R}}{d_2}$$
 - $UCL_R = 2{,}114 \times 0{,}40 = 0{,}846$ mm
 - $LCL_R = 0 \times 0{,}40 = 0$ mm
 - $\hat{\sigma} = 0{,}40 / 2{,}326 = 0{,}172$ mm
+
+<!-- IMG:control_chart_xbar.png -->
 
 #### 4.1.2 Carte $\bar{x}$ / S (moyenne et écart-type)
 
@@ -796,6 +804,8 @@ $$P_{pk} = \min\left(\frac{LSS - \bar{x}}{3s}, \frac{\bar{x} - LSI}{3s}\right)$$
 
 En général, $s \geq \sigma$, et donc $P_p \leq C_p$ et $P_{pk} \leq C_{pk}$. Un écart important entre les indices de capabilité et de performance indique la présence de sources de variation entre les sous-groupes (décalages de moyenne, effets opérateur, etc.).
 
+<!-- IMG:capability_cp_cpk.png -->
+
 #### 5.2.4 Interprétation des indices de capabilité
 
 | $C_{pk}$ (ou $P_{pk}$) | Interprétation | PPM hors tolérance (une queue) | Action recommandée |
@@ -927,6 +937,8 @@ $$\%GRR = \frac{GRR}{TV} \times 100$$
 | $10\%$ à $30\%$ | Système marginal. | Acceptable selon l'application et le coût. |
 | $> 30\%$ | Système inacceptable. | Amélioration indispensable avant utilisation. |
 
+<!-- IMG:grr_variance_components.png -->
+
 #### 6.2.2 Nombre de catégories distinctes (ndc)
 
 Le nombre de catégories distinctes est un indicateur supplémentaire de la discrimination du système de mesure :
@@ -1038,6 +1050,8 @@ Le diagramme Q-Q est un outil graphique qui compare les quantiles observés aux 
 - Courbure en S : asymétrie (skewness).
 - Extrémités déviantes : queues lourdes (kurtosis) ou valeurs aberrantes.
 - Points étagés : données discrètes ou arrondies.
+
+<!-- IMG:qqplot_comparison.png -->
 
 ### 7.6 Tableau comparatif des tests de normalité
 
@@ -1245,6 +1259,8 @@ Trois machines produisent des axes dont on mesure le diamètre (en mm). On prél
 | Total | 0,0120 | 14 | — | — |
 
 La valeur critique pour $\alpha = 0{,}05$, $\nu_1 = 2$, $\nu_2 = 12$ est $F_{0{,}05, 2, 12} = 3{,}89$. Comme $F = 18{,}0 \gg 3{,}89$, on rejette $H_0$ : les trois machines ne produisent pas le même diamètre moyen. Un test post-hoc (section 8.5) permettra d'identifier quelles machines diffèrent.
+
+<!-- IMG:anova_boxplot.png -->
 
 ### 8.4 ANOVA à deux facteurs (two-way ANOVA)
 
@@ -1777,6 +1793,8 @@ Un budget d'incertitude est un tableau résumant toutes les composantes de l'inc
 **Incertitude élargie :** $U = 2 \times 0{,}0081 = 0{,}016$ mm (arrondi).
 
 **Résultat :** $L = 25{,}032 \pm 0{,}016$ mm ($k = 2$, niveau de confiance $\approx 95\%$).
+
+<!-- IMG:uncertainty_budget.png -->
 
 ### 11.7 Degrés de liberté et formule de Welch-Satterthwaite
 

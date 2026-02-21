@@ -175,6 +175,8 @@ The switching rules between the three inspection severities are defined in claus
 
 **Discontinuation of inspection.** If, during tightened inspection, 5 consecutive lots remain rejected, inspection is suspended and corrective actions are required before resumption.
 
+<!-- IMG:switching_rules_diagram.png -->
+
 #### 2.1.7 Operating characteristic curves (OC curves)
 
 The operating characteristic (OC) curve gives the probability of acceptance $P_a$ of the lot as a function of the actual proportion of nonconforming items $p$ in the lot.
@@ -199,6 +201,8 @@ The OC curve allows visualization of:
 | Consumer's risk | $\beta$ | Probability of accepting a lot whose quality is at the LQ level. | $\approx 10\%$ |
 
 The choice of sampling plan is a compromise between these two risks. A more discriminating plan (larger sample size) simultaneously reduces $\alpha$ and $\beta$, but increases inspection cost.
+
+<!-- IMG:oc_curve_sampling.png -->
 
 ### 2.2 ISO 2859-2 — plans for isolated lots (LQ)
 
@@ -312,6 +316,8 @@ A control chart comprises three horizontal lines:
 
 The $\pm 3\sigma$ limits correspond to a false alarm probability of approximately 0.27% per point (i.e., approximately 1 point out of 370 outside the limits by chance alone, if the process is under control and the distribution is normal).
 
+<!-- IMG:normal_distribution_3sigma.png -->
+
 **Caution:** control limits are NOT specification limits. Control limits are calculated from the process data and reflect its natural variability. Specification limits are defined by the customer or the designer.
 
 ### ISO 7870-1 — general guide
@@ -385,6 +391,8 @@ $$\hat{\sigma} = \frac{\bar{R}}{d_2}$$
 - $UCL_R = 2{,}114 \times 0{,}40 = 0{,}846$ mm
 - $LCL_R = 0 \times 0{,}40 = 0$ mm
 - $\hat{\sigma} = 0{,}40 / 2{,}326 = 0{,}172$ mm
+
+<!-- IMG:control_chart_xbar.png -->
 
 #### 4.1.2 $\bar{x}$ / S chart (mean and standard deviation)
 
@@ -775,6 +783,8 @@ $$C_{pk} = \min\left(\frac{LSS - \bar{x}}{3\sigma}, \frac{\bar{x} - LSI}{3\sigma
 
 $C_{pk}$ accounts for centering. If the process is perfectly centered, $C_{pk} = C_p$. Otherwise, $C_{pk} < C_p$.
 
+<!-- IMG:capability_cp_cpk.png -->
+
 #### 5.2.2 Long-term performance indices ($P_p$, $P_{pk}$)
 
 These indices use the total standard deviation $s$ calculated from all individual data (total variation, overall).
@@ -927,6 +937,8 @@ $$\%GRR = \frac{GRR}{TV} \times 100$$
 | $10\%$ to $30\%$ | Marginal system. | Acceptable depending on application and cost. |
 | $> 30\%$ | Unacceptable system. | Improvement required before use. |
 
+<!-- IMG:grr_variance_components.png -->
+
 #### 6.2.2 Number of distinct categories (ndc)
 
 The number of distinct categories is an additional indicator of measurement system discrimination:
@@ -1038,6 +1050,8 @@ The Q-Q plot is a graphical tool that compares the observed quantiles to the the
 - S-shaped curvature: skewness.
 - Deviating extremes: heavy tails (kurtosis) or outliers.
 - Stepped points: discrete or rounded data.
+
+<!-- IMG:qqplot_comparison.png -->
 
 ### 7.6 Comparative table of normality tests
 
@@ -1242,6 +1256,8 @@ Group means: $\bar{x}_A = 10.020$, $\bar{x}_B = 10.050$, $\bar{x}_C = 10.080$. G
 - $F = 0.0045 / 0.00015 = 30.0$
 
 With $(\nu_1, \nu_2) = (2, 12)$ degrees of freedom, $F_{0.05, 2, 12} = 3.89$. Since $F = 30.0 \gg 3.89$, $H_0$ is rejected. The three operators produce significantly different mean measurements.
+
+<!-- IMG:anova_boxplot.png -->
 
 ### 8.4 Two-way ANOVA
 
@@ -1724,6 +1740,8 @@ An uncertainty budget is a table summarizing all uncertainty components. Here is
 **Expanded uncertainty:** $U = 2 \times 0{,}0081 = 0{,}016$ mm (rounded).
 
 **Result:** $L = 25{,}032 \pm 0{,}016$ mm ($k = 2$, confidence level $\approx 95\%$).
+
+<!-- IMG:uncertainty_budget.png -->
 
 ### 11.7 Degrees of freedom and the Welch-Satterthwaite formula
 
