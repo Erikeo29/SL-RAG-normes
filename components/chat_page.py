@@ -25,55 +25,58 @@ def render_chat_page():
         st.session_state[src_key] = []
         st.rerun()
 
-    # Message d'accueil avec exemples
+    # Message d'accueil avec exemples (hors du conteneur)
     if not st.session_state[msg_key]:
         st.info(t(f"chat_welcome_{domain}"))
 
-    # Historique des messages
-    for i, msg in enumerate(st.session_state[msg_key]):
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-            if msg["role"] == "assistant" and i < len(st.session_state[src_key]):
-                sources = st.session_state[src_key][i]
-                if sources:
-                    _render_sources(sources)
-
-    # Input chat
-    if prompt := st.chat_input(t("chat_placeholder")):
-        st.session_state[msg_key].append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        # Placeholder sources pour le message user
-        st.session_state[src_key].append(None)
-
-        with st.chat_message("assistant"):
-            response_chunks = []
-            source_chunks = []
-
-            def response_generator():
-                for text_chunk, sources in stream_rag_response(
-                    prompt,
-                    st.session_state[msg_key],
-                    domain=domain,
-                    collection_name=collection_name,
-                ):
-                    response_chunks.append(text_chunk)
+    # Conteneur de chat avec hauteur bornée — le chat_input reste
+    # en bas du conteneur (et non en bas de la page).
+    with st.container(height=500):
+        # Historique des messages
+        for i, msg in enumerate(st.session_state[msg_key]):
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+                if msg["role"] == "assistant" and i < len(st.session_state[src_key]):
+                    sources = st.session_state[src_key][i]
                     if sources:
-                        source_chunks.clear()
-                        source_chunks.extend(sources)
-                    yield text_chunk
+                        _render_sources(sources)
 
-            st.write_stream(response_generator())
+        # Input chat (à l'intérieur du conteneur)
+        if prompt := st.chat_input(t("chat_placeholder")):
+            st.session_state[msg_key].append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
 
-            if source_chunks:
-                _render_sources(source_chunks)
+            # Placeholder sources pour le message user
+            st.session_state[src_key].append(None)
 
-        full_response = "".join(response_chunks)
-        st.session_state[msg_key].append(
-            {"role": "assistant", "content": full_response}
-        )
-        st.session_state[src_key].append(source_chunks)
+            with st.chat_message("assistant"):
+                response_chunks = []
+                source_chunks = []
+
+                def response_generator():
+                    for text_chunk, sources in stream_rag_response(
+                        prompt,
+                        st.session_state[msg_key],
+                        domain=domain,
+                        collection_name=collection_name,
+                    ):
+                        response_chunks.append(text_chunk)
+                        if sources:
+                            source_chunks.clear()
+                            source_chunks.extend(sources)
+                        yield text_chunk
+
+                st.write_stream(response_generator())
+
+                if source_chunks:
+                    _render_sources(source_chunks)
+
+            full_response = "".join(response_chunks)
+            st.session_state[msg_key].append(
+                {"role": "assistant", "content": full_response}
+            )
+            st.session_state[src_key].append(source_chunks)
 
 
 def _render_sources(chunks: list[dict]):
