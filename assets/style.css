@@ -72,12 +72,16 @@ button[kind="primary"]:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    text-decoration: none;
+    text-decoration: none !important;
     transition: all 0.2s ease;
+    color: white !important;
+    font-size: 22px;
+    line-height: 1;
 }
 .nav-button:hover {
     background-color: #003366;
     transform: scale(1.1);
+    color: white !important;
 }
 .back-to-top {
     bottom: calc(50% + 30px);
