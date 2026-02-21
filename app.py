@@ -22,7 +22,7 @@ st.set_page_config(
 if "lang" not in st.session_state:
     st.session_state.lang = "fr"
 if "current_page" not in st.session_state:
-    st.session_state.current_page = "chat"
+    st.session_state.current_page = "about"
 if "domain" not in st.session_state:
     st.session_state.domain = "medical"
 

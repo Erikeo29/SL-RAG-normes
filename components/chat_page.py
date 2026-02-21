@@ -14,24 +14,22 @@ def render_chat_page():
     msg_key = f"chat_messages_{domain}"
     src_key = f"chat_sources_{domain}"
 
-    st.header(t("page_chat"))
-    st.caption(t("app_subtitle"))
-
     stats = get_db_stats(collection_name=collection_name)
     if stats["chunks"] == 0:
         st.warning(t("no_documents"))
         return
 
-    # Bouton clear
+    # Bouton clear (petit, en haut)
     if st.button(t("chat_clear"), type="secondary"):
         st.session_state[msg_key] = []
         st.session_state[src_key] = []
         st.rerun()
 
-    # Historique
+    # Message d'accueil avec exemples
     if not st.session_state[msg_key]:
         st.info(t(f"chat_welcome_{domain}"))
 
+    # Historique des messages
     for i, msg in enumerate(st.session_state[msg_key]):
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
@@ -40,7 +38,7 @@ def render_chat_page():
                 if sources:
                     _render_sources(sources)
 
-    # Input
+    # Input chat
     if prompt := st.chat_input(t("chat_placeholder")):
         st.session_state[msg_key].append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -79,7 +77,7 @@ def render_chat_page():
 
 
 def _render_sources(chunks: list[dict]):
-    """Affiche les sources utilisees pour une reponse."""
+    """Affiche les sources utilisées pour une réponse."""
     with st.expander(f"{t('sources_title')} ({len(chunks)})"):
         for i, chunk in enumerate(chunks, 1):
             similarity = max(0, 1 - chunk.get("distance", 1))

@@ -1,7 +1,7 @@
-"""Composant sidebar : navigation, domaine, langue, stats base."""
+"""Composant sidebar : langue, domaine, navigation, stats, annexes."""
 import streamlit as st
 
-from config import DOMAINS, VERSION, VERSION_DATE
+from config import DOMAINS
 from core.ingestion import get_db_stats
 from utils.translations import t
 
@@ -13,11 +13,27 @@ def render_sidebar():
 
         st.markdown("---")
 
-        # Domaine
+        # Langue (tout en haut)
+        lang_options = {"Français": "fr", "English": "en"}
+        current_lang = st.session_state.get("lang", "fr")
+        default_idx = 0 if current_lang == "fr" else 1
+        selected = st.radio(
+            t("lang_label"),
+            options=list(lang_options.keys()),
+            index=default_idx,
+            horizontal=True,
+            key="lang_radio",
+        )
+        new_lang = lang_options[selected]
+        if new_lang != current_lang:
+            st.session_state.lang = new_lang
+            st.rerun()
+
+        st.markdown("---")
+
+        # Domaine (sans icônes)
         domain_keys = list(DOMAINS.keys())
-        domain_labels = [
-            f"{DOMAINS[d]['icon']} {t(f'domain_{d}')}" for d in domain_keys
-        ]
+        domain_labels = [t(f"domain_{d}") for d in domain_keys]
         current_domain = st.session_state.get("domain", "medical")
         domain_idx = (
             domain_keys.index(current_domain)
@@ -38,34 +54,11 @@ def render_sidebar():
 
         st.markdown("---")
 
-        # Langue
-        lang_options = {"Francais": "fr", "English": "en"}
-        current_lang = st.session_state.get("lang", "fr")
-        default_idx = 0 if current_lang == "fr" else 1
-        selected = st.radio(
-            t("lang_label"),
-            options=list(lang_options.keys()),
-            index=default_idx,
-            horizontal=True,
-            key="lang_radio",
-        )
-        new_lang = lang_options[selected]
-        if new_lang != current_lang:
-            st.session_state.lang = new_lang
-            st.rerun()
-
-        st.markdown("---")
-
-        # Navigation
+        # Navigation (pages principales : À propos, Chat)
         st.subheader(t("sidebar_title"))
-        page_keys = ["chat", "upload", "matrix", "about"]
-        page_labels = [
-            t("page_chat"),
-            t("page_upload"),
-            t("page_matrix"),
-            t("page_about"),
-        ]
-        current = st.session_state.get("current_page", "chat")
+        page_keys = ["about", "chat"]
+        page_labels = [t("page_about"), t("page_chat")]
+        current = st.session_state.get("current_page", "about")
         nav_idx = page_keys.index(current) if current in page_keys else 0
         selected_page = st.radio(
             "Page",
@@ -93,5 +86,21 @@ def render_sidebar():
                     st.caption(f"- {src}")
 
         st.markdown("---")
-        st.caption(f"{t('version_label')} {VERSION} ({VERSION_DATE})")
-        st.caption("MIT License")
+
+        # Annexes (pages secondaires)
+        with st.expander(t("annexes_title")):
+            if st.button(
+                t("page_upload"), key="btn_upload", use_container_width=True
+            ):
+                st.session_state.current_page = "upload"
+                st.rerun()
+            if st.button(
+                t("page_matrix"), key="btn_matrix", use_container_width=True
+            ):
+                st.session_state.current_page = "matrix"
+                st.rerun()
+
+        st.markdown("---")
+
+        # Version (format projet 03)
+        st.markdown(t("version_info"))
