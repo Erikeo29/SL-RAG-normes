@@ -31,6 +31,8 @@ def _render_fr(stats_by_domain: dict[str, dict]):
         "pour permettre de poser des questions en langage naturel sur les documents chargés."
     )
 
+    st.markdown("---")
+
     st.subheader(t("about_domains_title"))
     col1, col2 = st.columns(2)
     with col1:
@@ -44,6 +46,8 @@ def _render_fr(stats_by_domain: dict[str, dict]):
         stats = stats_by_domain["statistique"]
         st.caption(f"{stats['documents']} documents, {stats['chunks']} chunks")
 
+    st.markdown("---")
+
     st.subheader("Fonctionnalités")
     st.markdown(
         "- **Sélecteur de domaine** : basculez entre normes médicales et normes statistiques\n"
@@ -54,6 +58,8 @@ def _render_fr(stats_by_domain: dict[str, dict]):
         "(FDA, ISO statistiques...) avec recherche RAG intégrée\n"
         "- **Bilingue** : français et anglais"
     )
+
+    st.markdown("---")
 
     st.subheader("Cas d'usage")
     st.markdown(
@@ -69,6 +75,8 @@ def _render_fr(stats_by_domain: dict[str, dict]):
         "- Comprendre les méthodes d'incertitude de mesure (GUM, NIST)"
     )
 
+    st.markdown("---")
+
     st.subheader("Architecture")
     st.code(
         "PDF Upload -> Découpage en chunks -> Embeddings -> ChromaDB\n"
@@ -78,6 +86,8 @@ def _render_fr(stats_by_domain: dict[str, dict]):
         "               Chunks + Question -> LLM (Llama 3.3) -> Réponse sourcée",
         language=None,
     )
+
+    st.markdown("---")
 
     st.subheader("Composants techniques")
     st.markdown(
@@ -91,6 +101,8 @@ def _render_fr(stats_by_domain: dict[str, dict]):
         "| Chunking | LangChain RecursiveCharacterTextSplitter |"
     )
 
+    st.markdown("---")
+
     st.subheader("Documents actuellement indexés")
     for dom, cfg in DOMAINS.items():
         stats = stats_by_domain[dom]
@@ -102,6 +114,8 @@ def _render_fr(stats_by_domain: dict[str, dict]):
             st.caption(f"{stats['documents']} documents, {stats['chunks']} chunks")
         else:
             st.caption("Aucun document indexé.")
+
+    st.markdown("---")
 
     st.caption(
         "Note : les documents chargés dans ce RAG sont des documents publics et gratuits."
@@ -118,6 +132,8 @@ def _render_en(stats_by_domain: dict[str, dict]):
         "questions on uploaded documents."
     )
 
+    st.markdown("---")
+
     st.subheader(t("about_domains_title"))
     col1, col2 = st.columns(2)
     with col1:
@@ -131,6 +147,8 @@ def _render_en(stats_by_domain: dict[str, dict]):
         stats = stats_by_domain["statistique"]
         st.caption(f"{stats['documents']} documents, {stats['chunks']} chunks")
 
+    st.markdown("---")
+
     st.subheader("Features")
     st.markdown(
         "- **Domain selector**: switch between medical standards and statistical standards\n"
@@ -140,6 +158,8 @@ def _render_en(stats_by_domain: dict[str, dict]):
         "(FDA, ISO statistical...) with integrated RAG search\n"
         "- **Bilingual**: French and English"
     )
+
+    st.markdown("---")
 
     st.subheader("Use cases")
     st.markdown(
@@ -155,6 +175,8 @@ def _render_en(stats_by_domain: dict[str, dict]):
         "- Understand measurement uncertainty methods (GUM, NIST)"
     )
 
+    st.markdown("---")
+
     st.subheader("Architecture")
     st.code(
         "PDF Upload -> Chunking -> Embeddings -> ChromaDB\n"
@@ -164,6 +186,8 @@ def _render_en(stats_by_domain: dict[str, dict]):
         "            Chunks + Question -> LLM (Llama 3.3) -> Sourced answer",
         language=None,
     )
+
+    st.markdown("---")
 
     st.subheader("Technical components")
     st.markdown(
@@ -177,6 +201,8 @@ def _render_en(stats_by_domain: dict[str, dict]):
         "| Chunking | LangChain RecursiveCharacterTextSplitter |"
     )
 
+    st.markdown("---")
+
     st.subheader("Currently indexed documents")
     for dom, cfg in DOMAINS.items():
         stats = stats_by_domain[dom]
@@ -188,6 +214,8 @@ def _render_en(stats_by_domain: dict[str, dict]):
             st.caption(f"{stats['documents']} documents, {stats['chunks']} chunks")
         else:
             st.caption("No documents indexed.")
+
+    st.markdown("---")
 
     st.caption(
         "Note: all documents loaded in this RAG are free, publicly available documents."

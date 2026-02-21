@@ -206,8 +206,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "page",
     },
     "no_documents": {
-        "fr": "Aucun document indexé. Chargez des PDFs dans l'onglet 'Gestion des documents'.",
-        "en": "No documents indexed. Upload PDFs in the 'Document management' tab.",
+        "fr": "Aucun document indexé. Chargez des PDFs via Annexes > Gestion des documents.",
+        "en": "No documents indexed. Upload PDFs via Annexes > Document management.",
     },
     # --- Matrix page ---
     "matrix_title": {
