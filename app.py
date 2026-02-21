@@ -45,18 +45,33 @@ elif "chat_messages" in st.session_state:
         del st.session_state["chat_sources"]
 
 
-# --- CSS ---
+# --- CSS + boutons de navigation ---
 @st.cache_data(ttl=3600)
-def load_css(path: str) -> str:
-    with open(path) as f:
-        return f.read()
+def load_custom_css(path: str) -> str:
+    """Charge le CSS et ajoute les boutons de navigation flottants."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            css_content = f.read()
+    except FileNotFoundError:
+        css_content = ""
+
+    nav_buttons_html = """
+    <a href="#top" class="nav-button back-to-top" title="Retour en haut / Back to top">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M12 4l-8 8h5v8h6v-8h5z"/>
+        </svg>
+    </a>
+    <a href="#bottom" class="nav-button scroll-to-bottom" title="Aller en bas / Go to bottom">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M12 20l8-8h-5V4h-6v8H4z"/>
+        </svg>
+    </a>
+    <div id="top"></div>
+    """
+    return f"<style>{css_content}</style>{nav_buttons_html}"
 
 
-try:
-    css = load_css(CSS_PATH)
-    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
-except FileNotFoundError:
-    pass
+st.markdown(load_custom_css(CSS_PATH), unsafe_allow_html=True)
 
 
 # --- Sidebar ---
@@ -74,3 +89,6 @@ elif page == "matrix":
     render_matrix_page()
 elif page == "about":
     render_about_page()
+
+# Ancre de bas de page
+st.markdown('<div id="bottom"></div>', unsafe_allow_html=True)

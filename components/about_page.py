@@ -57,10 +57,16 @@ def _render_fr(stats_by_domain: dict[str, dict]):
 
     st.subheader("Cas d'usage")
     st.markdown(
+        "**Normes médicales :**\n"
         "- Recherche rapide d'exigences dans les documents réglementaires chargés\n"
         "- Préparation d'audits : identifier rapidement les clauses pertinentes\n"
         "- Gap analysis : comparer les exigences avec les procédures internes\n"
-        "- Formation : comprendre les exigences réglementaires de manière interactive"
+        "- Formation : comprendre les exigences réglementaires de manière interactive\n\n"
+        "**Normes statistiques :**\n"
+        "- Retrouver un plan d'échantillonnage (NQA, taille de lot) dans l'ISO 2859\n"
+        "- Identifier les formules de cartes de contrôle (X-barre, R, p, c) de l'ISO 7870\n"
+        "- Consulter les indices de capabilité (Cp, Cpk, Pp, Ppk) de l'ISO 22514\n"
+        "- Comprendre les méthodes d'incertitude de mesure (GUM, NIST)"
     )
 
     st.subheader("Architecture")
@@ -137,10 +143,16 @@ def _render_en(stats_by_domain: dict[str, dict]):
 
     st.subheader("Use cases")
     st.markdown(
+        "**Medical standards:**\n"
         "- Quick lookup of requirements in uploaded regulatory documents\n"
         "- Audit preparation: rapidly identify relevant clauses\n"
         "- Gap analysis: compare requirements with internal procedures\n"
-        "- Training: understand regulatory requirements interactively"
+        "- Training: understand regulatory requirements interactively\n\n"
+        "**Statistical standards:**\n"
+        "- Find a sampling plan (AQL, lot size) in ISO 2859\n"
+        "- Identify control chart formulas (X-bar, R, p, c) from ISO 7870\n"
+        "- Look up capability indices (Cp, Cpk, Pp, Ppk) from ISO 22514\n"
+        "- Understand measurement uncertainty methods (GUM, NIST)"
     )
 
     st.subheader("Architecture")
