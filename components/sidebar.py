@@ -54,10 +54,15 @@ def render_sidebar():
 
         st.markdown("---")
 
-        # Navigation (pages principales : À propos, Chat)
+        # Navigation (pages principales)
         st.subheader(t("sidebar_title"))
-        page_keys = ["about", "chat"]
-        page_labels = [t("page_about"), t("page_chat")]
+        page_keys = ["about", "normes_medical", "normes_statistique", "chat"]
+        page_labels = [
+            t("page_about"),
+            t("page_normes_medical"),
+            t("page_normes_statistique"),
+            t("page_chat"),
+        ]
         current = st.session_state.get("current_page", "about")
         nav_idx = page_keys.index(current) if current in page_keys else 0
         selected_page = st.radio(

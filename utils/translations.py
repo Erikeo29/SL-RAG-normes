@@ -45,6 +45,14 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "fr": "À propos",
         "en": "About",
     },
+    "page_normes_medical": {
+        "fr": "Normes médicales",
+        "en": "Medical standards",
+    },
+    "page_normes_statistique": {
+        "fr": "Normes statistiques",
+        "en": "Statistical standards",
+    },
     "annexes_title": {
         "fr": "Annexes",
         "en": "Annexes",

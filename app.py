@@ -7,6 +7,7 @@ from components.chat_page import render_chat_page
 from components.upload_page import render_upload_page
 from components.matrix_page import render_matrix_page
 from components.about_page import render_about_page
+from components.normes_page import render_normes_medical_page, render_normes_statistique_page
 from utils.translations import t
 
 
@@ -80,6 +81,10 @@ elif page == "upload":
     render_upload_page()
 elif page == "matrix":
     render_matrix_page()
+elif page == "normes_medical":
+    render_normes_medical_page()
+elif page == "normes_statistique":
+    render_normes_statistique_page()
 elif page == "about":
     render_about_page()
 
