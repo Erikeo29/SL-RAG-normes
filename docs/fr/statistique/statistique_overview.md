@@ -13,12 +13,13 @@ Ce document constitue un cours de référence sur les principales normes statist
 5. [Capabilité des procédés (ISO 22514)](#5-capabilité-des-procédés-iso-22514)
 6. [Capabilité des systèmes de mesure (ISO 22514-7)](#6-capabilité-des-systèmes-de-mesure-iso-22514-7)
 7. [Tests de normalité (ISO 5479)](#7-tests-de-normalité-iso-5479)
-8. [Détection des valeurs aberrantes (ISO 16269-4)](#8-détection-des-valeurs-aberrantes-iso-16269-4)
-9. [Intervalles de tolérance statistiques (ISO 16269-6)](#9-intervalles-de-tolérance-statistiques-iso-16269-6)
-10. [Incertitude de mesure (GUM, NIST)](#10-incertitude-de-mesure-gum-nist)
-11. [Guide SPC (ISO 11462) — étapes d'implémentation](#11-guide-spc-iso-11462--étapes-dimplémentation)
-12. [Synthèse et articulations — tableau croisé](#12-synthèse-et-articulations--tableau-croisé)
-13. [Documents indexés dans le RAG](#13-documents-indexés-dans-le-rag)
+8. [Comparaison de populations — tests et ANOVA (ISO 5725, ASTM E691)](#8-comparaison-de-populations--tests-et-anova-iso-5725-astm-e691)
+9. [Détection des valeurs aberrantes (ISO 16269-4)](#9-détection-des-valeurs-aberrantes-iso-16269-4)
+10. [Intervalles de tolérance statistiques (ISO 16269-6)](#10-intervalles-de-tolérance-statistiques-iso-16269-6)
+11. [Incertitude de mesure (GUM, NIST)](#11-incertitude-de-mesure-gum-nist)
+12. [Guide SPC (ISO 11462) — étapes d'implémentation](#12-guide-spc-iso-11462--étapes-dimplémentation)
+13. [Synthèse et articulations — tableau croisé](#13-synthèse-et-articulations--tableau-croisé)
+14. [Documents indexés dans le RAG](#14-documents-indexés-dans-le-rag)
 
 ---
 
@@ -1051,11 +1052,407 @@ Le diagramme Q-Q est un outil graphique qui compare les quantiles observés aux 
 
 ---
 
-## 8. Détection des valeurs aberrantes (ISO 16269-4)
+## 8. Comparaison de populations — tests et ANOVA (ISO 5725, ASTM E691)
+
+En qualité industrielle, il est fréquent de devoir comparer des populations : deux machines produisent-elles des pièces de même dimension moyenne ? Trois opérateurs obtiennent-ils la même dispersion de mesure ? Un changement de fournisseur a-t-il modifié la performance du procédé ? Cette section couvre les principaux tests paramétriques et non paramétriques de comparaison, ainsi que l'analyse de la variance (ANOVA).
+
+### 8.1 Comparaison de deux moyennes — test de Student
+
+Le test de Student (ou test $t$) est le test de base pour comparer des moyennes. Il existe en trois variantes selon la structure des données.
+
+#### 8.1.1 Test de Student pour un échantillon (one-sample t-test)
+
+On compare la moyenne $\bar{x}$ d'un échantillon de taille $n$ à une valeur de référence $\mu_0$ connue (par exemple, la valeur nominale d'une spécification).
+
+**Hypothèses :**
+- $H_0$ : $\mu = \mu_0$ (la moyenne du procédé est égale à la référence).
+- $H_1$ : $\mu \neq \mu_0$ (test bilatéral) ou $\mu > \mu_0$ / $\mu < \mu_0$ (test unilatéral).
+
+**Statistique de test :**
+
+$$t = \frac{\bar{x} - \mu_0}{s / \sqrt{n}}$$
+
+avec $\nu = n - 1$ degrés de liberté.
+
+**Règle de décision (test bilatéral) :** rejeter $H_0$ si $|t| > t_{\alpha/2, \, n-1}$.
+
+**Conditions d'application :**
+- L'échantillon est prélevé aléatoirement.
+- La population suit une distribution approximativement normale (vérifier avec les tests de la section 7).
+- Pour $n \geq 30$, le test est robuste aux écarts modérés par rapport à la normalité (théorème central limite).
+
+**Exemple industriel.** Un procédé d'usinage vise un diamètre nominal $\mu_0 = 10{,}000$ mm. On prélève $n = 12$ pièces et on mesure $\bar{x} = 10{,}015$ mm, $s = 0{,}022$ mm. La statistique est $t = (10{,}015 - 10{,}000) / (0{,}022 / \sqrt{12}) = 2{,}362$. La valeur critique pour $\alpha = 0{,}05$ bilatéral et $\nu = 11$ est $t_{0{,}025, 11} = 2{,}201$. Comme $|t| = 2{,}362 > 2{,}201$, on rejette $H_0$ : le procédé est significativement décentré.
+
+#### 8.1.2 Test de Student pour deux échantillons indépendants (two-sample t-test)
+
+On compare les moyennes de deux échantillons indépendants, par exemple les productions de deux machines.
+
+**Cas 1 : variances égales (pooled t-test).**
+
+On suppose $\sigma_1^2 = \sigma_2^2$ (hypothèse vérifiable par le test de Fisher, section 8.2).
+
+$$t = \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}$$
+
+où $s_p$ est l'écart-type poolé :
+
+$$s_p = \sqrt{\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}}$$
+
+Les degrés de liberté sont $\nu = n_1 + n_2 - 2$.
+
+**Cas 2 : variances inégales (test de Welch).**
+
+Lorsque l'hypothèse d'égalité des variances est rejetée, on utilise le test de Welch :
+
+$$t = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}}$$
+
+Les degrés de liberté effectifs sont estimés par la formule de Welch-Satterthwaite :
+
+$$\nu_{eff} = \frac{\left(\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}\right)^2}{\frac{(s_1^2/n_1)^2}{n_1 - 1} + \frac{(s_2^2/n_2)^2}{n_2 - 1}}$$
+
+Le résultat est arrondi à l'entier inférieur.
+
+**Recommandation pratique.** En cas de doute sur l'égalité des variances, utiliser systématiquement le test de Welch, qui est plus conservateur mais toujours valide.
+
+#### 8.1.3 Test de Student apparié (paired t-test)
+
+On compare deux mesures effectuées sur les mêmes unités : avant/après traitement, même pièce mesurée par deux instruments, etc.
+
+**Principe.** On calcule les différences $d_i = x_{1i} - x_{2i}$ pour chaque paire, puis on applique un test à un échantillon sur les $d_i$.
+
+$$t = \frac{\bar{d}}{s_d / \sqrt{n}}$$
+
+avec $\bar{d} = \frac{1}{n}\sum_{i=1}^{n} d_i$ et $s_d = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(d_i - \bar{d})^2}$, et $\nu = n - 1$.
+
+**Conditions d'application :**
+- Les paires sont naturellement appariées (même pièce, même lot, même opérateur).
+- Les différences $d_i$ suivent une distribution approximativement normale.
+
+**Applications typiques en qualité :**
+- Comparer un ancien et un nouveau moyen de mesure sur les mêmes pièces.
+- Évaluer l'effet d'un traitement de surface avant/après.
+- Vérifier la dérive d'un instrument entre deux étalonnages sur les mêmes étalons.
+
+### 8.2 Comparaison de deux variances — test de Fisher (F-test)
+
+Le test de Fisher compare les variances de deux populations normales indépendantes. Il est souvent utilisé comme prérequis au test de Student à deux échantillons (pour décider entre le pooled t-test et le test de Welch).
+
+**Hypothèses :**
+- $H_0$ : $\sigma_1^2 = \sigma_2^2$ (les deux populations ont la même variance).
+- $H_1$ : $\sigma_1^2 \neq \sigma_2^2$ (test bilatéral).
+
+**Statistique de test :**
+
+$$F = \frac{s_1^2}{s_2^2}$$
+
+avec par convention $s_1^2 \geq s_2^2$ pour que $F \geq 1$.
+
+Les degrés de liberté sont $\nu_1 = n_1 - 1$ (numérateur) et $\nu_2 = n_2 - 1$ (dénominateur).
+
+**Règle de décision (test bilatéral) :** rejeter $H_0$ si $F > F_{\alpha/2, \, \nu_1, \, \nu_2}$.
+
+**Valeurs critiques du test de Fisher ($\alpha = 0{,}05$, bilatéral, soit $\alpha/2 = 0{,}025$ par queue) :**
+
+| $\nu_1 \backslash \nu_2$ | 5 | 10 | 15 | 20 | 30 | 60 |
+|---|---|---|---|---|---|---|
+| 5 | 7,15 | 4,24 | 3,58 | 3,29 | 3,03 | 2,79 |
+| 10 | 4,24 | 3,15 | 2,72 | 2,52 | 2,33 | 2,16 |
+| 15 | 3,58 | 2,72 | 2,40 | 2,23 | 2,07 | 1,92 |
+| 20 | 3,29 | 2,52 | 2,23 | 2,08 | 1,93 | 1,79 |
+| 30 | 3,03 | 2,33 | 2,07 | 1,93 | 1,79 | 1,65 |
+| 60 | 2,79 | 2,16 | 1,92 | 1,79 | 1,65 | 1,53 |
+
+**Limites du test de Fisher.** Le test de Fisher est très sensible à la non-normalité des données. Pour des données non normales, on préfère le test de Levene (section 8.6). Pour comparer les variances de $k > 2$ groupes, on utilise le test de Bartlett ou le test de Levene.
+
+### 8.3 ANOVA à un facteur (one-way ANOVA)
+
+L'analyse de la variance (ANOVA) à un facteur permet de comparer les moyennes de $k \geq 3$ groupes simultanément. C'est la généralisation du test de Student à deux échantillons.
+
+**Pourquoi ne pas faire des tests de Student multiples ?** Si l'on compare $k = 4$ groupes deux à deux, on effectue $\binom{4}{2} = 6$ tests. Avec $\alpha = 0{,}05$ par test, le risque global de conclure à tort qu'au moins une paire diffère atteint $1 - (1 - 0{,}05)^6 \approx 26\%$. L'ANOVA contrôle le risque $\alpha$ global.
+
+**Hypothèses :**
+- $H_0$ : $\mu_1 = \mu_2 = \cdots = \mu_k$ (toutes les moyennes de groupe sont égales).
+- $H_1$ : au moins une moyenne diffère.
+
+#### 8.3.1 Décomposition de la variabilité
+
+La variabilité totale est décomposée en deux sources : la variabilité inter-groupes (Between, due au facteur) et la variabilité intra-groupe (Within, résiduelle).
+
+$$SS_T = SS_B + SS_W$$
+
+**Somme des carrés totale :**
+
+$$SS_T = \sum_{j=1}^{k}\sum_{i=1}^{n_j}(x_{ij} - \bar{\bar{x}})^2$$
+
+où $\bar{\bar{x}}$ est la moyenne générale de toutes les observations.
+
+**Somme des carrés inter-groupes (Between) :**
+
+$$SS_B = \sum_{j=1}^{k} n_j (\bar{x}_j - \bar{\bar{x}})^2$$
+
+où $\bar{x}_j$ est la moyenne du groupe $j$ et $n_j$ est l'effectif du groupe $j$.
+
+**Somme des carrés intra-groupe (Within) :**
+
+$$SS_W = \sum_{j=1}^{k}\sum_{i=1}^{n_j}(x_{ij} - \bar{x}_j)^2$$
+
+#### 8.3.2 Table ANOVA
+
+| Source | Somme des carrés | Degrés de liberté | Carré moyen | F |
+|---|---|---|---|---|
+| Inter-groupes (Between) | $SS_B$ | $k - 1$ | $MS_B = SS_B / (k - 1)$ | $F = MS_B / MS_W$ |
+| Intra-groupe (Within) | $SS_W$ | $N - k$ | $MS_W = SS_W / (N - k)$ | — |
+| Total | $SS_T$ | $N - 1$ | — | — |
+
+où $N = \sum_{j=1}^{k} n_j$ est le nombre total d'observations.
+
+**Règle de décision :** rejeter $H_0$ si $F > F_{\alpha, \, k-1, \, N-k}$.
+
+#### 8.3.3 Conditions d'application
+
+1. **Indépendance** : les observations sont indépendantes entre elles et entre les groupes.
+2. **Normalité** : les données au sein de chaque groupe suivent une distribution approximativement normale (vérifier avec la section 7).
+3. **Homogénéité des variances** (homoscédasticité) : les variances des $k$ groupes sont égales ($\sigma_1^2 = \sigma_2^2 = \cdots = \sigma_k^2$). Vérifier avec le test de Bartlett ou de Levene (section 8.6).
+
+Si la condition d'homogénéité est violée, on utilise l'ANOVA de Welch comme alternative robuste.
+
+#### 8.3.4 Exemple numérique — comparaison de 3 machines
+
+Trois machines produisent des axes dont on mesure le diamètre (en mm). On prélève $n = 5$ pièces par machine.
+
+| Machine A | Machine B | Machine C |
+|---|---|---|
+| 10,02 | 10,05 | 9,98 |
+| 10,01 | 10,03 | 10,00 |
+| 10,03 | 10,06 | 9,97 |
+| 10,00 | 10,04 | 9,99 |
+| 10,04 | 10,07 | 10,01 |
+
+**Calculs :**
+- $\bar{x}_A = 10{,}020$, $\bar{x}_B = 10{,}050$, $\bar{x}_C = 9{,}990$.
+- $\bar{\bar{x}} = (10{,}020 + 10{,}050 + 9{,}990) / 3 = 10{,}020$.
+- $SS_B = 5 \times [(10{,}020 - 10{,}020)^2 + (10{,}050 - 10{,}020)^2 + (9{,}990 - 10{,}020)^2] = 5 \times [0 + 0{,}0009 + 0{,}0009] = 0{,}0090$.
+- $SS_W = \sum (x_{ij} - \bar{x}_j)^2 = 0{,}0010 + 0{,}0010 + 0{,}0010 = 0{,}0030$ (sommes des carrés des écarts intra-groupe).
+- $MS_B = 0{,}0090 / 2 = 0{,}0045$.
+- $MS_W = 0{,}0030 / 12 = 0{,}000\,25$.
+- $F = 0{,}0045 / 0{,}000\,25 = 18{,}0$.
+
+**Table ANOVA de l'exemple :**
+
+| Source | SS | df | MS | F |
+|---|---|---|---|---|
+| Between | 0,0090 | 2 | 0,0045 | 18,0 |
+| Within | 0,0030 | 12 | 0,000 25 | — |
+| Total | 0,0120 | 14 | — | — |
+
+La valeur critique pour $\alpha = 0{,}05$, $\nu_1 = 2$, $\nu_2 = 12$ est $F_{0{,}05, 2, 12} = 3{,}89$. Comme $F = 18{,}0 \gg 3{,}89$, on rejette $H_0$ : les trois machines ne produisent pas le même diamètre moyen. Un test post-hoc (section 8.5) permettra d'identifier quelles machines diffèrent.
+
+### 8.4 ANOVA à deux facteurs (two-way ANOVA)
+
+L'ANOVA à deux facteurs étudie l'effet simultané de deux facteurs (par exemple, machine et opérateur) sur une variable de réponse. Elle permet en outre de détecter une interaction entre les deux facteurs.
+
+#### 8.4.1 Modèle avec interaction
+
+Le modèle s'écrit :
+
+$$x_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \varepsilon_{ijk}$$
+
+où $\alpha_i$ est l'effet du niveau $i$ du facteur A, $\beta_j$ est l'effet du niveau $j$ du facteur B, $(\alpha\beta)_{ij}$ est l'effet d'interaction, et $\varepsilon_{ijk}$ est l'erreur résiduelle.
+
+#### 8.4.2 Décomposition de la variabilité
+
+$$SS_T = SS_A + SS_B + SS_{AB} + SS_E$$
+
+| Source | Somme des carrés | Degrés de liberté | Carré moyen | F |
+|---|---|---|---|---|
+| Facteur A | $SS_A$ | $a - 1$ | $MS_A = SS_A / (a - 1)$ | $F_A = MS_A / MS_E$ |
+| Facteur B | $SS_B$ | $b - 1$ | $MS_B = SS_B / (b - 1)$ | $F_B = MS_B / MS_E$ |
+| Interaction A$\times$B | $SS_{AB}$ | $(a-1)(b-1)$ | $MS_{AB} = SS_{AB} / [(a-1)(b-1)]$ | $F_{AB} = MS_{AB} / MS_E$ |
+| Erreur (résiduelle) | $SS_E$ | $ab(r-1)$ | $MS_E = SS_E / [ab(r-1)]$ | — |
+| Total | $SS_T$ | $abr - 1$ | — | — |
+
+où $a$ est le nombre de niveaux du facteur A, $b$ le nombre de niveaux du facteur B, et $r$ le nombre de réplicats par cellule.
+
+#### 8.4.3 Interprétation de l'interaction
+
+Si l'interaction A$\times$B est significative ($F_{AB} > F_{critique}$), les effets principaux de A et B doivent être interprétés avec prudence : l'effet d'un facteur dépend du niveau de l'autre. Dans ce cas, on analyse les effets simples (simple effects) plutôt que les effets principaux.
+
+**Lien avec l'ISO 5725.** L'étude de répétabilité et reproductibilité (R&R) de l'ISO 5725 peut être formulée comme une ANOVA à deux facteurs, avec l'opérateur comme facteur A et la pièce (ou le laboratoire) comme facteur B. La variance de répétabilité correspond à $MS_E$ et la variance de reproductibilité est estimée à partir de $MS_A$.
+
+### 8.5 Tests post-hoc — comparaisons multiples
+
+Lorsque l'ANOVA rejette $H_0$, elle indique qu'au moins une moyenne diffère, mais ne précise pas laquelle. Les tests post-hoc (ou comparaisons multiples) identifient les paires de groupes qui diffèrent significativement.
+
+#### 8.5.1 Test de Tukey HSD (Honestly Significant Difference)
+
+Le test de Tukey est le plus courant pour les comparaisons par paires lorsque les effectifs sont égaux.
+
+$$HSD = q_{\alpha, k, N-k} \sqrt{\frac{MS_W}{n}}$$
+
+où $q_{\alpha, k, N-k}$ est la valeur critique de la distribution de la range studentisée, $k$ est le nombre de groupes, $N - k$ les degrés de liberté résiduels, et $n$ l'effectif par groupe (groupes de taille égale).
+
+**Règle de décision :** deux moyennes $\bar{x}_i$ et $\bar{x}_j$ diffèrent significativement si $|\bar{x}_i - \bar{x}_j| > HSD$.
+
+**Valeurs critiques $q_{0{,}05, k, \nu}$ (extrait) :**
+
+| $\nu \backslash k$ | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|
+| 10 | 3,88 | 4,33 | 4,65 | 4,91 |
+| 12 | 3,77 | 4,20 | 4,51 | 4,75 |
+| 15 | 3,67 | 4,08 | 4,37 | 4,60 |
+| 20 | 3,58 | 3,96 | 4,23 | 4,45 |
+| 30 | 3,49 | 3,85 | 4,10 | 4,30 |
+| 60 | 3,40 | 3,74 | 3,98 | 4,16 |
+
+**Application à l'exemple de la section 8.3.4.** Avec $k = 3$, $\nu = 12$, $n = 5$ et $MS_W = 0{,}000\,25$, on lit $q_{0{,}05, 3, 12} = 3{,}77$. Le HSD vaut $3{,}77 \times \sqrt{0{,}000\,25 / 5} = 3{,}77 \times 0{,}00707 = 0{,}0267$ mm. Les différences de moyennes sont $|\bar{x}_A - \bar{x}_B| = 0{,}030$, $|\bar{x}_A - \bar{x}_C| = 0{,}030$, $|\bar{x}_B - \bar{x}_C| = 0{,}060$. Toutes les différences dépassent le HSD : les trois machines sont significativement différentes deux à deux.
+
+#### 8.5.2 Correction de Bonferroni
+
+La correction de Bonferroni est une méthode générale applicable à tout type de comparaisons multiples. Elle ajuste le seuil de signification :
+
+$$\alpha_{adj} = \frac{\alpha}{m}$$
+
+où $m$ est le nombre de comparaisons. Pour $k$ groupes, $m = k(k-1)/2$.
+
+Cette correction est plus conservatrice que le test de Tukey (elle rejette moins souvent), mais elle est applicable même avec des effectifs inégaux ou des comparaisons planifiées.
+
+#### 8.5.3 Tableau comparatif des méthodes post-hoc
+
+| Méthode | Usage principal | Avantage | Inconvénient |
+|---|---|---|---|
+| Tukey HSD | Toutes les comparaisons par paires, effectifs égaux. | Contrôle exact du risque $\alpha$ familywise. | Nécessite des effectifs égaux (sinon Tukey-Kramer). |
+| Bonferroni | Toute situation, petit nombre de comparaisons. | Simple, applicable partout. | Trop conservatrice si $m$ est grand. |
+| Scheffé | Contrastes quelconques (pas seulement par paires). | Flexibilité maximale. | La plus conservatrice pour les paires. |
+| Dunnett | Comparer chaque groupe à un témoin unique. | Plus puissant que Tukey pour ce cas. | Limité à la comparaison avec un témoin. |
+
+### 8.6 Tests d'homogénéité des variances
+
+L'homogénéité des variances (homoscédasticité) est un prérequis pour l'ANOVA classique et pour le pooled t-test. Deux tests principaux permettent de la vérifier.
+
+#### 8.6.1 Test de Bartlett
+
+Le test de Bartlett est le test classique d'homogénéité des variances pour $k$ groupes.
+
+**Hypothèses :**
+- $H_0$ : $\sigma_1^2 = \sigma_2^2 = \cdots = \sigma_k^2$.
+- $H_1$ : au moins une variance diffère.
+
+**Statistique de test :**
+
+$$\chi^2 = \frac{(N - k) \ln(s_p^2) - \sum_{j=1}^{k}(n_j - 1)\ln(s_j^2)}{1 + \frac{1}{3(k-1)}\left(\sum_{j=1}^{k}\frac{1}{n_j - 1} - \frac{1}{N - k}\right)}$$
+
+où $s_p^2 = \frac{\sum_{j=1}^{k}(n_j - 1)s_j^2}{N - k}$ est la variance poolée.
+
+On compare $\chi^2$ à la valeur critique $\chi^2_{\alpha, k-1}$.
+
+**Limite.** Le test de Bartlett est très sensible à la non-normalité : des écarts à la normalité peuvent conduire à rejeter $H_0$ alors que les variances sont égales.
+
+#### 8.6.2 Test de Levene
+
+Le test de Levene est une alternative robuste au test de Bartlett, moins sensible à la non-normalité.
+
+**Principe.** On remplace chaque observation par son écart absolu à la médiane du groupe :
+
+$$z_{ij} = |x_{ij} - \tilde{x}_j|$$
+
+où $\tilde{x}_j$ est la médiane du groupe $j$. Puis on effectue une ANOVA à un facteur sur les $z_{ij}$.
+
+**Avantage.** L'utilisation de la médiane (plutôt que la moyenne) rend le test robuste aux données non normales et aux valeurs aberrantes.
+
+**Recommandation pratique.** En routine industrielle, préférer le test de Levene au test de Bartlett, sauf si la normalité des données est bien établie.
+
+### 8.7 Alternative non paramétrique — test de Kruskal-Wallis
+
+Lorsque l'hypothèse de normalité n'est pas vérifiée (et ne peut pas être obtenue par transformation), on utilise le test de Kruskal-Wallis comme alternative non paramétrique à l'ANOVA à un facteur.
+
+**Principe.** Les $N$ observations sont classées par rang (de 1 à $N$) indépendamment de leur groupe d'appartenance. La statistique de test compare les rangs moyens des groupes.
+
+**Statistique de test :**
+
+$$H = \frac{12}{N(N+1)} \sum_{j=1}^{k} \frac{R_j^2}{n_j} - 3(N+1)$$
+
+où $R_j$ est la somme des rangs du groupe $j$ et $n_j$ est l'effectif du groupe $j$.
+
+**Distribution.** Sous $H_0$, la statistique $H$ suit approximativement une distribution du $\chi^2$ à $k - 1$ degrés de liberté (pour $n_j \geq 5$).
+
+**Règle de décision :** rejeter $H_0$ si $H > \chi^2_{\alpha, k-1}$.
+
+**Quand utiliser le Kruskal-Wallis plutôt que l'ANOVA :**
+- Les données ne suivent pas une distribution normale et ne peuvent pas être transformées.
+- Les données sont ordinales plutôt que continues.
+- Les échantillons sont petits et la normalité ne peut pas être vérifiée.
+- En présence de valeurs aberrantes qui affecteraient l'ANOVA.
+
+Si le test de Kruskal-Wallis est significatif, on peut utiliser le test de Dunn comme test post-hoc pour identifier les paires de groupes qui diffèrent.
+
+### 8.8 Applications industrielles — ISO 5725 et ASTM E691
+
+Les tests de comparaison décrits dans cette section sont au coeur de deux normes majeures : l'ISO 5725 (exactitude des résultats de mesure) et l'ASTM E691 (études interlaboratoires).
+
+#### 8.8.1 ISO 5725 — exactitude (justesse et fidélité)
+
+L'ISO 5725 décompose l'exactitude (accuracy) en deux composantes :
+- **Justesse** (trueness) : proximité de la moyenne des résultats à la valeur de référence. Mesurée par le biais.
+- **Fidélité** (precision) : proximité des résultats entre eux. Mesurée par l'écart-type de répétabilité $s_r$ et l'écart-type de reproductibilité $s_R$.
+
+**Répétabilité ($r$).** Conditions de répétabilité : même opérateur, même instrument, même laboratoire, court intervalle de temps. La limite de répétabilité est $r = 2{,}8 \times s_r$. Deux résultats obtenus en conditions de répétabilité ne devraient pas différer de plus de $r$ dans 95 % des cas.
+
+**Reproductibilité ($R$).** Conditions de reproductibilité : opérateurs différents, instruments différents, laboratoires différents. La limite de reproductibilité est $R = 2{,}8 \times s_R$.
+
+La variance de reproductibilité inclut la variance de répétabilité :
+
+$$s_R^2 = s_r^2 + s_L^2$$
+
+où $s_L^2$ est la variance inter-laboratoires, estimée par une ANOVA emboîtée (nested ANOVA).
+
+#### 8.8.2 ASTM E691 — études interlaboratoires
+
+L'ASTM E691 fournit une procédure pour organiser et analyser une étude interlaboratoire (collaborative study). Elle utilise deux statistiques de consistance introduites par Mandel :
+
+**Statistique $h$ de Mandel (consistance inter-laboratoires) :**
+
+$$h_j = \frac{\bar{x}_j - \bar{\bar{x}}}{s_{\bar{x}}}$$
+
+où $\bar{x}_j$ est la moyenne du laboratoire $j$, $\bar{\bar{x}}$ est la moyenne de tous les laboratoires, et $s_{\bar{x}}$ est l'écart-type des moyennes de laboratoires. La statistique $h$ détecte les biais systématiques d'un laboratoire.
+
+**Statistique $k$ de Mandel (consistance intra-laboratoire) :**
+
+$$k_j = \frac{s_j}{s_r}$$
+
+où $s_j$ est l'écart-type du laboratoire $j$ et $s_r$ est l'écart-type de répétabilité moyen. La statistique $k$ détecte les laboratoires dont la dispersion est anormalement élevée ou faible.
+
+Les valeurs critiques de $h$ et $k$ sont données dans les tables de l'ASTM E691. Un laboratoire dont $|h|$ ou $k$ dépasse la valeur critique doit être examiné pour identifier les causes de l'écart.
+
+#### 8.8.3 Exemple pratique — comparaison de 3 instruments de mesure
+
+Trois instruments mesurent la même cote sur $n = 10$ pièces de référence.
+
+| Instrument | $\bar{x}$ (mm) | $s$ (mm) |
+|---|---|---|
+| Instrument 1 | 25,012 | 0,008 |
+| Instrument 2 | 25,018 | 0,011 |
+| Instrument 3 | 25,010 | 0,009 |
+
+**Analyse.** Une ANOVA à un facteur sur les mesures individuelles permet de tester si les trois instruments donnent la même moyenne. Le test de Bartlett ou de Levene vérifie si les dispersions sont homogènes. Si l'ANOVA est significative, un test de Tukey identifie quels instruments diffèrent. Enfin, les statistiques $h$ et $k$ de Mandel caractérisent la consistance de chaque instrument par rapport à l'ensemble.
+
+### 8.9 Tableau récapitulatif des tests de comparaison
+
+| Objectif | Test | Conditions | Alternative non paramétrique |
+|---|---|---|---|
+| Comparer une moyenne à une référence. | Student 1 échantillon. | Normalité. | Wilcoxon signé. |
+| Comparer 2 moyennes indépendantes. | Student 2 échantillons. | Normalité, égalité des variances (ou Welch). | Mann-Whitney U. |
+| Comparer 2 moyennes appariées. | Student apparié. | Normalité des différences. | Wilcoxon signé (apparié). |
+| Comparer 2 variances. | Fisher F. | Normalité. | Ansari-Bradley. |
+| Comparer $k \geq 3$ moyennes. | ANOVA à 1 facteur. | Normalité, homogénéité des variances. | Kruskal-Wallis. |
+| Comparer $k$ moyennes (2 facteurs). | ANOVA à 2 facteurs. | Normalité, homogénéité. | Friedman (mesures répétées). |
+| Comparer $k$ variances. | Bartlett / Levene. | Bartlett : normalité ; Levene : robuste. | — |
+
+---
+
+## 9. Détection des valeurs aberrantes (ISO 16269-4)
 
 Les valeurs aberrantes (outliers) sont des observations qui s'écartent significativement du reste des données. Elles peuvent provenir d'erreurs de mesure, d'erreurs de transcription, de causes spéciales ou d'une contamination de l'échantillon. L'ISO 16269-4 fournit des tests statistiques pour les détecter.
 
-### 8.1 Test de Grubbs
+### 9.1 Test de Grubbs
 
 Le test de Grubbs est le test le plus utilisé pour détecter une valeur aberrante unique dans un échantillon supposé normalement distribué.
 
@@ -1099,7 +1496,7 @@ où $\bar{x}$ est la moyenne et $s$ est l'écart-type de l'échantillon.
 
 On rejette $H_0$ si $G > G_{critique}$. Si une valeur aberrante est détectée et retirée, le test peut être répété sur le jeu de données réduit.
 
-### 8.2 Test de Dixon
+### 9.2 Test de Dixon
 
 Le test de Dixon est une alternative non paramétrique au test de Grubbs, particulièrement adaptée aux petits échantillons ($3 \leq n \leq 25$). Il utilise des rapports basés sur les statistiques d'ordre (données triées).
 
@@ -1136,7 +1533,7 @@ Pour tester la plus petite valeur, on inverse les indices.
 
 *Le symbole « — » indique que la statistique correspondante n'est pas utilisée pour cette taille d'échantillon.*
 
-### 8.3 Comparaison des tests de Grubbs et Dixon
+### 9.3 Comparaison des tests de Grubbs et Dixon
 
 | Critère | Grubbs | Dixon |
 |---|---|---|
@@ -1150,11 +1547,11 @@ Pour tester la plus petite valeur, on inverse les indices.
 
 ---
 
-## 9. Intervalles de tolérance statistiques (ISO 16269-6)
+## 10. Intervalles de tolérance statistiques (ISO 16269-6)
 
 Un intervalle de tolérance statistique est un intervalle estimé à partir d'un échantillon qui contient au moins une proportion $p$ de la population avec un niveau de confiance $\gamma$. Il ne faut pas le confondre avec l'intervalle de confiance (qui encadre un paramètre) ni avec l'intervalle de tolérance industriel (spécifications imposées par le client).
 
-### 9.1 Définitions
+### 10.1 Définitions
 
 **Intervalle de tolérance bilatéral :** un intervalle $[\bar{x} - k \cdot s, \, \bar{x} + k \cdot s]$ qui contient au moins la proportion $p$ de la population avec un niveau de confiance $\gamma$.
 
@@ -1164,7 +1561,7 @@ Un intervalle de tolérance statistique est un intervalle estimé à partir d'un
 
 Le facteur $k$ dépend de la taille de l'échantillon $n$, de la proportion $p$ et du niveau de confiance $\gamma$.
 
-### 9.2 Facteurs $k$ pour les intervalles bilatéraux (distribution normale)
+### 10.2 Facteurs $k$ pour les intervalles bilatéraux (distribution normale)
 
 Le tableau suivant donne les facteurs $k$ pour des intervalles de tolérance bilatéraux sous hypothèse de normalité, pour les valeurs courantes de $p$ et $\gamma$ :
 
@@ -1207,7 +1604,7 @@ Le tableau suivant donne les facteurs $k$ pour des intervalles de tolérance bil
 | 50 | 2,735 | 2,882 | 3,165 |
 | 100 | 2,601 | 2,715 | 2,917 |
 
-### 9.3 Facteurs $k$ pour les intervalles unilatéraux (distribution normale)
+### 10.3 Facteurs $k$ pour les intervalles unilatéraux (distribution normale)
 
 **$p = 0{,}95$, $\gamma = 0{,}95$ :**
 
@@ -1222,7 +1619,7 @@ Le tableau suivant donne les facteurs $k$ pour des intervalles de tolérance bil
 | 50 | 1,965 |
 | 100 | 1,874 |
 
-### 9.4 Intervalles de tolérance non paramétriques (distribution-free)
+### 10.4 Intervalles de tolérance non paramétriques (distribution-free)
 
 Lorsque la distribution des données n'est pas normale (ou ne peut pas être vérifiée), on utilise des intervalles de tolérance non paramétriques basés sur les statistiques d'ordre.
 
@@ -1242,7 +1639,7 @@ Pour un intervalle bilatéral avec $r = 1$ (bornes = minimum et maximum de l'éc
 
 Ces tailles d'échantillon élevées illustrent le coût de l'absence d'hypothèse distributionnelle : il faut beaucoup plus de données pour obtenir la même couverture.
 
-### 9.5 Distinction entre les types d'intervalles statistiques
+### 10.5 Distinction entre les types d'intervalles statistiques
 
 Il est essentiel de ne pas confondre les différents types d'intervalles.
 
@@ -1254,7 +1651,7 @@ Il est essentiel de ne pas confondre les différents types d'intervalles.
 
 L'intervalle de confiance est toujours le plus étroit car il vise un seul paramètre. L'intervalle de tolérance est le plus large car il doit couvrir une proportion entière de la population avec un niveau de confiance donné.
 
-### 9.6 Application pratique : vérification de la conformité d'un lot
+### 10.6 Application pratique : vérification de la conformité d'un lot
 
 Pour vérifier qu'un lot satisfait une spécification bilatérale $[LSI, LSS]$ avec au moins $p = 99\%$ de la population conforme à un niveau de confiance $\gamma = 95\%$, on procède ainsi :
 1. Prélever un échantillon de taille $n$ (par exemple, $n = 30$).
@@ -1266,11 +1663,11 @@ Pour vérifier qu'un lot satisfait une spécification bilatérale $[LSI, LSS]$ a
 
 ---
 
-## 10. Incertitude de mesure (GUM, NIST)
+## 11. Incertitude de mesure (GUM, NIST)
 
 Le GUM (Guide to the expression of Uncertainty in Measurement, JCGM 100:2008) est le document de référence international pour l'évaluation et l'expression de l'incertitude de mesure. La note technique NIST TN 1297 en est un résumé pratique pour les laboratoires.
 
-### 10.1 Principes fondamentaux
+### 11.1 Principes fondamentaux
 
 Toute mesure est entachée d'une incertitude. Le résultat d'une mesure n'est complet que s'il est accompagné de son incertitude. L'incertitude de mesure quantifie la dispersion des valeurs qui pourraient raisonnablement être attribuées au mesurande.
 
@@ -1280,7 +1677,7 @@ $$Y = f(X_1, X_2, \ldots, X_N)$$
 
 où $Y$ est le mesurande, $X_i$ sont les grandeurs d'entrée et $f$ est la fonction de mesure.
 
-### 10.2 Évaluation de type A
+### 11.2 Évaluation de type A
 
 L'évaluation de type A utilise l'analyse statistique d'une série de $n$ observations répétées.
 
@@ -1294,7 +1691,7 @@ $$s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i - \bar{x})^2}$$
 
 L'évaluation de type A est associée à $\nu = n - 1$ degrés de liberté.
 
-### 10.3 Évaluation de type B
+### 11.3 Évaluation de type B
 
 L'évaluation de type B utilise des informations autres que statistiques : certificats d'étalonnage, spécifications du fabricant, données de la littérature, jugement d'expert.
 
@@ -1329,7 +1726,7 @@ Par exemple, si un certificat d'étalonnage indique $U = 0{,}1$ mg avec $k = 2$,
 | Normale | Incertitude élargie $U$, facteur $k$ | $U / k$ | Certificat d'étalonnage. |
 | En U (arc-sinus) | Demi-amplitude $a$ | $a / \sqrt{2}$ | Oscillation sinusoïdale (température cyclique). |
 
-### 10.4 Incertitude composée
+### 11.4 Incertitude composée
 
 L'incertitude composée $u_c$ est obtenue par la loi de propagation des incertitudes (approximation linéaire) :
 
@@ -1345,7 +1742,7 @@ $$u_c^2 = \sum_{i=1}^{N} c_i^2 \, u_i^2 + 2 \sum_{i=1}^{N-1}\sum_{j=i+1}^{N} c_i
 
 où $u(x_i, x_j)$ est la covariance estimée.
 
-### 10.5 Incertitude élargie
+### 11.5 Incertitude élargie
 
 L'incertitude élargie $U$ fournit un intervalle dans lequel le mesurande se situe avec un niveau de confiance donné :
 
@@ -1364,7 +1761,7 @@ Le facteur $k = 2$ est le plus couramment utilisé et correspond à un niveau de
 
 $$Y = y \pm U \quad (k = 2, \text{ niveau de confiance } \approx 95\%)$$
 
-### 10.6 Budget d'incertitude — exemple
+### 11.6 Budget d'incertitude — exemple
 
 Un budget d'incertitude est un tableau résumant toutes les composantes de l'incertitude. Voici un exemple pour la mesure d'une longueur avec un pied à coulisse.
 
@@ -1381,7 +1778,7 @@ Un budget d'incertitude est un tableau résumant toutes les composantes de l'inc
 
 **Résultat :** $L = 25{,}032 \pm 0{,}016$ mm ($k = 2$, niveau de confiance $\approx 95\%$).
 
-### 10.7 Degrés de liberté et formule de Welch-Satterthwaite
+### 11.7 Degrés de liberté et formule de Welch-Satterthwaite
 
 Lorsque l'incertitude composée combine des composantes avec des degrés de liberté $\nu_i$ différents, le nombre effectif de degrés de liberté $\nu_{eff}$ est estimé par la formule de Welch-Satterthwaite :
 
@@ -1401,7 +1798,7 @@ Le résultat est arrondi à l'entier inférieur. Si $\nu_{eff}$ est faible (typi
 | 50 | 2,01 | 2,68 |
 | $\infty$ | 1,96 | 2,58 |
 
-### 10.8 Règles de conformité et incertitude (ISO 14253-1)
+### 11.8 Règles de conformité et incertitude (ISO 14253-1)
 
 Lorsqu'un résultat de mesure est comparé à une spécification, l'incertitude de mesure doit être prise en compte. L'ISO 14253-1 définit les règles suivantes :
 
@@ -1415,7 +1812,7 @@ $$y < LSI - U \quad \text{ou} \quad y > LSS + U$$
 
 **Zone d'incertitude :** lorsque le résultat se situe entre la zone de conformité et la zone de non-conformité, aucune décision ne peut être prise avec certitude. Cette zone a une largeur de $2U$ de chaque côté de la limite de spécification.
 
-### 10.9 Bonnes pratiques pour l'expression de l'incertitude
+### 11.9 Bonnes pratiques pour l'expression de l'incertitude
 
 1. Identifier toutes les sources d'incertitude (ne rien oublier).
 2. Quantifier chaque source par une incertitude-type (type A ou type B).
@@ -1427,32 +1824,32 @@ $$y < LSI - U \quad \text{ou} \quad y > LSS + U$$
 
 ---
 
-## 11. Guide SPC (ISO 11462) — étapes d'implémentation
+## 12. Guide SPC (ISO 11462) — étapes d'implémentation
 
 L'ISO 11462-1 fournit des lignes directrices pour la mise en oeuvre de la maîtrise statistique des procédés (SPC) dans un environnement industriel. La norme insiste sur le fait que le SPC est un outil de management et d'amélioration continue, et non pas simplement un calcul statistique.
 
-### 11.1 Étape 1 — engagement de la direction
+### 12.1 Étape 1 — engagement de la direction
 
 La direction doit comprendre et soutenir la démarche SPC. Cela inclut :
 - L'allocation de ressources (personnel, formation, logiciels, instruments).
 - La définition d'objectifs mesurables.
 - L'intégration du SPC dans le système qualité (ISO 9001).
 
-### 11.2 Étape 2 — identification des procédés
+### 12.2 Étape 2 — identification des procédés
 
 Identifier les procédés critiques qui ont un impact significatif sur la qualité du produit. Utiliser des outils comme :
 - L'AMDEC (Analyse des Modes de Défaillance, de leurs Effets et de leur Criticité) pour hiérarchiser les risques.
 - Le diagramme de flux du procédé pour comprendre les étapes clés.
 - L'analyse de Pareto pour identifier les sources principales de non-conformité.
 
-### 11.3 Étape 3 — analyse du système de mesure
+### 12.3 Étape 3 — analyse du système de mesure
 
 Avant de collecter des données SPC, vérifier que le système de mesure est adéquat (section 6) :
 - Étude GRR : %GRR $< 10\%$ (acceptable) ou $< 30\%$ (marginal).
 - Nombre de catégories distinctes $ndc \geq 5$.
 - Linéarité et stabilité du moyen de mesure.
 
-### 11.4 Étape 4 — collecte des données
+### 12.4 Étape 4 — collecte des données
 
 Définir un plan de collecte des données incluant :
 - La caractéristique à surveiller.
@@ -1460,7 +1857,7 @@ Définir un plan de collecte des données incluant :
 - La méthode de prélèvement (aléatoire au sein d'un sous-groupe homogène).
 - Le nombre minimal de sous-groupes pour la phase d'étude (au moins 25, selon ISO 7870-2).
 
-### 11.5 Étape 5 — choix de la carte de contrôle
+### 12.5 Étape 5 — choix de la carte de contrôle
 
 Le choix de la carte de contrôle dépend du type de données et des conditions de production.
 
@@ -1474,14 +1871,14 @@ Le choix de la carte de contrôle dépend du type de données et des conditions 
 | Attributs (nombre de défauts) | Constante | $c$ |
 | Attributs (taux de défauts) | Variable | $u$ |
 
-### 11.6 Étape 6 — calcul des limites de contrôle
+### 12.6 Étape 6 — calcul des limites de contrôle
 
 Calculer les limites de contrôle à partir des données de la phase d'étude, en utilisant les formules de la section 4. Vérifier que :
 - Aucun point n'est en dehors des limites pendant la phase d'étude.
 - Aucun motif non aléatoire n'est détecté (règles Western Electric, section 4.3).
 - Si des points hors contrôle sont identifiés et que la cause spéciale est trouvée et éliminée, recalculer les limites après exclusion de ces points.
 
-### 11.7 Étape 7 — surveillance du procédé
+### 12.7 Étape 7 — surveillance du procédé
 
 Mettre en place la carte de contrôle en production :
 - Tracer les nouvelles données en temps réel.
@@ -1489,7 +1886,7 @@ Mettre en place la carte de contrôle en production :
 - Former les opérateurs à l'interprétation de la carte.
 - Documenter les événements (changements de lot, réglages, etc.).
 
-### 11.8 Étape 8 — plan d'action en cas de hors-contrôle (OCAP)
+### 12.8 Étape 8 — plan d'action en cas de hors-contrôle (OCAP)
 
 L'OCAP (Out-of-Control Action Plan) définit les actions à entreprendre lorsqu'un signal hors contrôle est détecté. Il doit inclure :
 - L'identification de la cause spéciale (les 5M : matière, machine, méthode, main-d'oeuvre, milieu).
@@ -1498,7 +1895,7 @@ L'OCAP (Out-of-Control Action Plan) définit les actions à entreprendre lorsqu'
 - La vérification de l'efficacité de l'action corrective.
 - La mise à jour éventuelle des limites de contrôle.
 
-### 11.9 Étape 9 — amélioration continue
+### 12.9 Étape 9 — amélioration continue
 
 Le SPC ne se limite pas à la surveillance : il est un outil d'amélioration continue (PDCA). Les objectifs à long terme sont :
 - Réduire la variabilité du procédé (augmenter $C_{pk}$).
@@ -1515,7 +1912,7 @@ Le SPC ne se limite pas à la surveillance : il est un outil d'amélioration con
 
 ---
 
-## 12. Synthèse et articulations — tableau croisé
+## 13. Synthèse et articulations — tableau croisé
 
 Le tableau suivant montre comment les différentes normes et méthodes s'articulent entre elles. Chaque ligne représente une norme, et chaque colonne indique si cette norme est liée à un domaine donné.
 
@@ -1527,6 +1924,7 @@ Le tableau suivant montre comment les différentes normes et méthodes s'articul
 | **ISO 22514-2** (capabilité procédé) | — | Requiert un procédé sous contrôle (SPC). | Oui (principal). | Hypothèse de normalité requise pour les indices. | Les outliers faussent les indices. | Le système de mesure contribue à la variabilité. | Les indices sont liés aux intervalles de tolérance. |
 | **ISO 22514-7** (capabilité mesure) | — | Prérequis pour un SPC fiable. | Prérequis pour une capabilité fiable. | — | — | Liée à l'incertitude de mesure. | — |
 | **ISO 5479** (normalité) | — | Prérequis pour I-MR. | Prérequis pour $C_p$, $C_{pk}$. | Oui (principal). | À réaliser avant le test d'outliers. | — | Prérequis pour les intervalles paramétriques. |
+| **ISO 5725 / ASTM E691** (ANOVA, comparaison) | — | Comparer des procédés ou des machines. | Vérifier l'homogénéité entre équipements. | Prérequis pour les tests paramétriques (Student, ANOVA). | Les outliers faussent les moyennes comparées. | Répétabilité et reproductibilité liées à l'incertitude. | — |
 | **ISO 16269-4** (outliers) | Les outliers dans l'échantillon faussent la décision. | Les outliers génèrent de fausses alarmes. | Les outliers faussent $C_{pk}$. | Grubbs suppose la normalité. | Oui (principal). | — | Les outliers élargissent les intervalles. |
 | **ISO 16269-6** (intervalles de tolérance) | — | — | Liée à la notion de capabilité. | Intervalles paramétriques supposent la normalité. | Les outliers affectent les bornes. | — | Oui (principal). |
 | **ISO 11462** (guide SPC) | — | Oui (guide d'implémentation). | Intègre la capabilité dans la démarche SPC. | Mentionne la vérification de normalité. | — | Mentionne la validation du système de mesure. | — |
@@ -1547,11 +1945,11 @@ Le tableau suivant montre comment les différentes normes et méthodes s'articul
 
 ---
 
-## 13. Documents indexés dans le RAG
+## 14. Documents indexés dans le RAG
 
 Les documents suivants sont disponibles dans la collection statistique du RAG et peuvent être interrogés pour des informations plus détaillées.
 
-### 13.1 Normes d'échantillonnage
+### 14.1 Normes d'échantillonnage
 
 | Référence | Titre | Contenu principal |
 |---|---|---|
@@ -1559,7 +1957,7 @@ Les documents suivants sont disponibles dans la collection statistique du RAG et
 | **ISO 2859-2** | Plans d'échantillonnage pour les contrôles par attributs — Partie 2 : plans d'échantillonnage pour les contrôles de lots isolés, indexés d'après la qualité limite (LQ). | Plans pour lots isolés, tables indexées par LQ. |
 | **ISO 3951-1** | Plans d'échantillonnage pour les contrôles par mesures — Partie 1 : plans d'échantillonnage simples, indexés d'après le NQA. | Méthodes $s$ et $\sigma$, constante d'acceptabilité $k$, spécifications unilatérales et bilatérales. |
 
-### 13.2 Normes SPC et cartes de contrôle
+### 14.2 Normes SPC et cartes de contrôle
 
 | Référence | Titre | Contenu principal |
 |---|---|---|
@@ -1568,7 +1966,7 @@ Les documents suivants sont disponibles dans la collection statistique du RAG et
 | **ASTM E2587** | Standard Practice for Use of Control Charts in Statistical Process Control. | Guide pratique pour la mise en oeuvre des cartes de contrôle, exemples numériques. |
 | **ISO 11462-1** | Lignes directrices pour la mise en oeuvre de la maîtrise statistique des procédés (MSP) — Partie 1 : éléments de MSP. | Étapes d'implémentation, organisation, formation, amélioration continue. |
 
-### 13.3 Normes de capabilité
+### 14.3 Normes de capabilité
 
 | Référence | Titre | Contenu principal |
 |---|---|---|
@@ -1576,7 +1974,7 @@ Les documents suivants sont disponibles dans la collection statistique du RAG et
 | **ISO 22514-2** | Méthodes statistiques dans la gestion de processus — Capabilité et performance — Partie 2 : capabilité et performance de processus pour des caractéristiques de qualité quantitatives dépendant du temps. | Indices $C_p$, $C_{pk}$, $P_p$, $P_{pk}$, méthodes de calcul. |
 | **ISO 22514-7** | Méthodes statistiques dans la gestion de processus — Capabilité et performance — Partie 7 : capabilité des processus de mesure. | Indices $C_g$, $C_{gk}$, étude GRR, %GRR, ndc. |
 
-### 13.4 Normes de tests statistiques et intervalles
+### 14.4 Normes de tests statistiques et intervalles
 
 | Référence | Titre | Contenu principal |
 |---|---|---|
@@ -1584,7 +1982,7 @@ Les documents suivants sont disponibles dans la collection statistique du RAG et
 | **ISO 16269-4** | Interprétation statistique des données — Partie 4 : détection et traitement des valeurs aberrantes. | Tests de Grubbs, Dixon, tables de valeurs critiques. |
 | **ISO 16269-6** | Interprétation statistique des données — Partie 6 : détermination des intervalles de tolérance statistiques. | Intervalles paramétriques et non paramétriques, tables de facteurs $k$. |
 
-### 13.5 Guides internationaux pour l'incertitude
+### 14.5 Guides internationaux pour l'incertitude
 
 | Référence | Titre | Contenu principal |
 |---|---|---|

@@ -13,12 +13,13 @@ This document serves as a reference course on the main statistical standards use
 5. [Process capability (ISO 22514)](#5-process-capability-iso-22514)
 6. [Measurement system capability (ISO 22514-7)](#6-measurement-system-capability-iso-22514-7)
 7. [Normality tests (ISO 5479)](#7-normality-tests-iso-5479)
-8. [Outlier detection (ISO 16269-4)](#8-outlier-detection-iso-16269-4)
-9. [Statistical tolerance intervals (ISO 16269-6)](#9-statistical-tolerance-intervals-iso-16269-6)
-10. [Measurement uncertainty (GUM, NIST)](#10-measurement-uncertainty-gum-nist)
-11. [SPC guide (ISO 11462) — implementation steps](#11-spc-guide-iso-11462--implementation-steps)
-12. [Summary and interconnections — cross-reference table](#12-summary-and-interconnections--cross-reference-table)
-13. [Documents indexed in the RAG](#13-documents-indexed-in-the-rag)
+8. [Comparison of populations — tests and ANOVA (ISO 5725, ASTM E691)](#8-comparison-of-populations--tests-and-anova-iso-5725-astm-e691)
+9. [Outlier detection (ISO 16269-4)](#9-outlier-detection-iso-16269-4)
+10. [Statistical tolerance intervals (ISO 16269-6)](#10-statistical-tolerance-intervals-iso-16269-6)
+11. [Measurement uncertainty (GUM, NIST)](#11-measurement-uncertainty-gum-nist)
+12. [SPC guide (ISO 11462) — implementation steps](#12-spc-guide-iso-11462--implementation-steps)
+13. [Summary and interconnections — cross-reference table](#13-summary-and-interconnections--cross-reference-table)
+14. [Documents indexed in the RAG](#14-documents-indexed-in-the-rag)
 
 ---
 
@@ -1051,11 +1052,354 @@ The Q-Q plot is a graphical tool that compares the observed quantiles to the the
 
 ---
 
-## 8. Outlier detection (ISO 16269-4)
+## 8. Comparison of populations — tests and ANOVA (ISO 5725, ASTM E691)
+
+In industrial quality, it is common to compare populations: do two machines produce parts with the same average dimension? Do three operators achieve the same measurement dispersion? Has a supplier change affected process performance? This section covers the main parametric comparison tests used to answer these questions.
+
+The general approach is always the same: formulate a null hypothesis $H_0$ (no difference), choose a significance level $\alpha$ (typically 0.05), compute a test statistic from the data, and compare it to a critical value or compute a p-value. If the test statistic exceeds the critical threshold, $H_0$ is rejected and the difference is declared statistically significant.
+
+### 8.1 Comparing two means — Student's t-test
+
+Student's t-test is the fundamental parametric test for comparing means. It assumes that the underlying populations are approximately normally distributed. For large samples ($n > 30$), the test is robust to moderate departures from normality thanks to the central limit theorem.
+
+#### 8.1.1 One-sample t-test
+
+The one-sample t-test compares the mean of a sample to a known reference value $\mu_0$ (for example, a nominal specification).
+
+**Hypotheses:**
+- $H_0$: $\mu = \mu_0$ (the population mean equals the reference value).
+- $H_1$: $\mu \neq \mu_0$ (two-sided test).
+
+**Test statistic:**
+
+$$t = \frac{\bar{x} - \mu_0}{s / \sqrt{n}}$$
+
+where $\bar{x}$ is the sample mean, $s$ is the sample standard deviation, and $n$ is the sample size. Under $H_0$, $t$ follows a Student distribution with $\nu = n - 1$ degrees of freedom.
+
+**Decision rule:** reject $H_0$ if $|t| > t_{\alpha/2, n-1}$.
+
+**Numerical example.** A process is supposed to produce rods with a nominal diameter of 10.00 mm. A sample of $n = 15$ rods gives $\bar{x} = 10.03$ mm and $s = 0.05$ mm.
+
+$$t = \frac{10.03 - 10.00}{0.05 / \sqrt{15}} = \frac{0.03}{0.0129} = 2.32$$
+
+With $\nu = 14$ degrees of freedom, $t_{0.025, 14} = 2.145$. Since $|t| = 2.32 > 2.145$, $H_0$ is rejected at the 5% level. The mean diameter is significantly different from 10.00 mm.
+
+#### 8.1.2 Two-sample t-test (independent samples)
+
+The two-sample t-test compares the means of two independent groups (for example, two machines, two suppliers, or two settings).
+
+**Hypotheses:**
+- $H_0$: $\mu_1 = \mu_2$.
+- $H_1$: $\mu_1 \neq \mu_2$.
+
+**Case 1 — equal variances (pooled t-test):**
+
+When the two population variances can be assumed equal ($\sigma_1^2 = \sigma_2^2$), the pooled standard deviation is used:
+
+$$s_p = \sqrt{\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}}$$
+
+The test statistic is:
+
+$$t = \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}$$
+
+with $\nu = n_1 + n_2 - 2$ degrees of freedom.
+
+**Case 2 — unequal variances (Welch's t-test):**
+
+When the variances are not assumed equal, Welch's approximation is used:
+
+$$t = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}}$$
+
+The degrees of freedom are approximated by the Welch-Satterthwaite formula:
+
+$$\nu = \frac{\left(\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}\right)^2}{\frac{(s_1^2/n_1)^2}{n_1 - 1} + \frac{(s_2^2/n_2)^2}{n_2 - 1}}$$
+
+In practice, always verify the equality of variances first (section 8.2 or 8.6) before choosing between the pooled and Welch versions.
+
+**Numerical example.** Two machines produce the same part. Measurements of the thickness give:
+- Machine A: $n_1 = 12$, $\bar{x}_1 = 5.02$ mm, $s_1 = 0.08$ mm.
+- Machine B: $n_2 = 10$, $\bar{x}_2 = 4.96$ mm, $s_2 = 0.07$ mm.
+
+Assuming equal variances:
+
+$$s_p = \sqrt{\frac{11 \times 0.08^2 + 9 \times 0.07^2}{20}} = \sqrt{\frac{0.0704 + 0.0441}{20}} = \sqrt{0.005725} = 0.0757$$
+
+$$t = \frac{5.02 - 4.96}{0.0757 \sqrt{\frac{1}{12} + \frac{1}{10}}} = \frac{0.06}{0.0757 \times 0.4264} = \frac{0.06}{0.0323} = 1.86$$
+
+With $\nu = 20$ degrees of freedom, $t_{0.025, 20} = 2.086$. Since $|t| = 1.86 < 2.086$, $H_0$ is not rejected. There is no significant difference between the two machines at the 5% level.
+
+#### 8.1.3 Paired t-test
+
+The paired t-test is used when observations come in natural pairs (same part measured before and after a treatment, same operator on two instruments, etc.). The test operates on the differences $d_i = x_{1i} - x_{2i}$.
+
+**Hypotheses:**
+- $H_0$: $\mu_d = 0$ (no systematic difference between pairs).
+- $H_1$: $\mu_d \neq 0$.
+
+**Test statistic:**
+
+$$t = \frac{\bar{d}}{s_d / \sqrt{n}}$$
+
+where $\bar{d} = \frac{1}{n}\sum_{i=1}^{n} d_i$ is the mean of the differences, $s_d$ is the standard deviation of the differences, and $n$ is the number of pairs. Under $H_0$, $t$ follows a Student distribution with $\nu = n - 1$ degrees of freedom.
+
+**When to use:** the paired t-test is more powerful than the two-sample t-test when the pairing effectively reduces variability (for example, comparing two treatments on the same batch of parts eliminates part-to-part variability).
+
+### 8.2 Comparing two variances — Fisher's F-test
+
+Fisher's F-test compares the variances of two independent normally distributed populations. It is often used as a preliminary step before choosing between the pooled t-test and Welch's t-test.
+
+**Hypotheses:**
+- $H_0$: $\sigma_1^2 = \sigma_2^2$.
+- $H_1$: $\sigma_1^2 \neq \sigma_2^2$.
+
+**Test statistic:**
+
+$$F = \frac{s_1^2}{s_2^2}$$
+
+where $s_1^2 \geq s_2^2$ by convention (so that $F \geq 1$). Under $H_0$, $F$ follows a Fisher-Snedecor distribution with $(\nu_1, \nu_2) = (n_1 - 1, n_2 - 1)$ degrees of freedom.
+
+**Decision rule (two-sided):** reject $H_0$ if $F > F_{\alpha/2, \nu_1, \nu_2}$.
+
+**Critical values (excerpt, $\alpha = 0.05$, two-sided):**
+
+| $\nu_1 \backslash \nu_2$ | 5 | 10 | 15 | 20 | 30 |
+|---|---|---|---|---|---|
+| 5 | 7.15 | 4.24 | 3.58 | 3.29 | 3.03 |
+| 10 | 4.24 | 2.98 | 2.54 | 2.35 | 2.16 |
+| 15 | 3.58 | 2.54 | 2.18 | 2.01 | 1.86 |
+| 20 | 3.29 | 2.35 | 2.01 | 1.84 | 1.70 |
+| 30 | 3.03 | 2.16 | 1.86 | 1.70 | 1.57 |
+
+**Caution:** the F-test for equality of variances is very sensitive to departures from normality. If normality is uncertain, prefer the Levene test (section 8.6).
+
+### 8.3 One-way ANOVA
+
+One-way analysis of variance (ANOVA) extends the two-sample t-test to the comparison of $k$ groups ($k \geq 2$). It tests whether the group means are all equal.
+
+**Hypotheses:**
+- $H_0$: $\mu_1 = \mu_2 = \ldots = \mu_k$ (all group means are equal).
+- $H_1$: at least two means differ.
+
+**Conditions:**
+- Independence of observations.
+- Normality within each group (or large samples).
+- Homogeneity of variances (homoscedasticity): $\sigma_1^2 = \sigma_2^2 = \ldots = \sigma_k^2$.
+
+#### 8.3.1 Sum of squares decomposition
+
+The total variability is decomposed into two components:
+
+$$SS_T = SS_B + SS_W$$
+
+where:
+
+- **Total sum of squares:**
+
+$$SS_T = \sum_{i=1}^{k} \sum_{j=1}^{n_i} (x_{ij} - \bar{x})^2$$
+
+- **Between-groups sum of squares:**
+
+$$SS_B = \sum_{i=1}^{k} n_i (\bar{x}_i - \bar{x})^2$$
+
+- **Within-groups sum of squares:**
+
+$$SS_W = \sum_{i=1}^{k} \sum_{j=1}^{n_i} (x_{ij} - \bar{x}_i)^2$$
+
+Here $\bar{x}$ is the grand mean of all observations and $\bar{x}_i$ is the mean of group $i$.
+
+#### 8.3.2 ANOVA table
+
+| Source | Sum of squares | df | Mean square | F |
+|---|---|---|---|---|
+| Between groups | $SS_B$ | $k - 1$ | $MS_B = \frac{SS_B}{k - 1}$ | $F = \frac{MS_B}{MS_W}$ |
+| Within groups | $SS_W$ | $N - k$ | $MS_W = \frac{SS_W}{N - k}$ | |
+| **Total** | $SS_T$ | $N - 1$ | | |
+
+where $N = \sum_{i=1}^{k} n_i$ is the total number of observations.
+
+**Decision rule:** reject $H_0$ if $F > F_{\alpha, k-1, N-k}$.
+
+The F statistic measures the ratio of between-group variability to within-group variability. A large F value indicates that the group means differ more than would be expected from random variation alone.
+
+#### 8.3.3 Numerical example
+
+Three operators measure the same dimension on 5 parts each. The results (in mm) are:
+
+| Operator A | Operator B | Operator C |
+|---|---|---|
+| 10.02 | 10.05 | 10.08 |
+| 10.01 | 10.04 | 10.07 |
+| 10.03 | 10.06 | 10.09 |
+| 10.02 | 10.05 | 10.06 |
+| 10.02 | 10.05 | 10.10 |
+
+Group means: $\bar{x}_A = 10.020$, $\bar{x}_B = 10.050$, $\bar{x}_C = 10.080$. Grand mean: $\bar{x} = 10.050$.
+
+- $SS_B = 5 \times [(10.020 - 10.050)^2 + (10.050 - 10.050)^2 + (10.080 - 10.050)^2] = 5 \times [0.0009 + 0 + 0.0009] = 0.009$
+- $SS_W = (0.0006 + 0.0002 + 0.0010) = 0.0018$ (sum of within-group deviations squared)
+- $MS_B = 0.009 / 2 = 0.0045$
+- $MS_W = 0.0018 / 12 = 0.00015$
+- $F = 0.0045 / 0.00015 = 30.0$
+
+With $(\nu_1, \nu_2) = (2, 12)$ degrees of freedom, $F_{0.05, 2, 12} = 3.89$. Since $F = 30.0 \gg 3.89$, $H_0$ is rejected. The three operators produce significantly different mean measurements.
+
+### 8.4 Two-way ANOVA
+
+Two-way ANOVA extends the analysis to two factors simultaneously and allows detection of their interaction. For example, one may wish to study the effect of both the machine (factor A with $a$ levels) and the material batch (factor B with $b$ levels) on a quality characteristic.
+
+**Model with interaction (balanced design, $n$ replicates per cell):**
+
+$$x_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \epsilon_{ijk}$$
+
+where $\alpha_i$ is the effect of level $i$ of factor A, $\beta_j$ is the effect of level $j$ of factor B, $(\alpha\beta)_{ij}$ is the interaction effect, and $\epsilon_{ijk}$ is the random error.
+
+#### 8.4.1 Sum of squares decomposition
+
+$$SS_T = SS_A + SS_B + SS_{AB} + SS_E$$
+
+- $SS_A = bn \sum_{i=1}^{a} (\bar{x}_{i..} - \bar{x}_{...})^2$ — effect of factor A.
+- $SS_B = an \sum_{j=1}^{b} (\bar{x}_{.j.} - \bar{x}_{...})^2$ — effect of factor B.
+- $SS_{AB} = n \sum_{i=1}^{a} \sum_{j=1}^{b} (\bar{x}_{ij.} - \bar{x}_{i..} - \bar{x}_{.j.} + \bar{x}_{...})^2$ — interaction.
+- $SS_E = \sum_{i=1}^{a} \sum_{j=1}^{b} \sum_{k=1}^{n} (x_{ijk} - \bar{x}_{ij.})^2$ — residual error.
+
+#### 8.4.2 ANOVA table (two-way with interaction)
+
+| Source | SS | df | MS | F |
+|---|---|---|---|---|
+| Factor A | $SS_A$ | $a - 1$ | $MS_A = \frac{SS_A}{a - 1}$ | $F_A = \frac{MS_A}{MS_E}$ |
+| Factor B | $SS_B$ | $b - 1$ | $MS_B = \frac{SS_B}{b - 1}$ | $F_B = \frac{MS_B}{MS_E}$ |
+| Interaction A $\times$ B | $SS_{AB}$ | $(a-1)(b-1)$ | $MS_{AB} = \frac{SS_{AB}}{(a-1)(b-1)}$ | $F_{AB} = \frac{MS_{AB}}{MS_E}$ |
+| Error | $SS_E$ | $ab(n-1)$ | $MS_E = \frac{SS_E}{ab(n-1)}$ | |
+| **Total** | $SS_T$ | $abn - 1$ | | |
+
+Each F statistic is compared to the corresponding critical value $F_{\alpha, \nu_1, \nu_2}$. The interaction term is tested first: if the interaction is significant, the main effects must be interpreted with caution (they depend on the level of the other factor).
+
+### 8.5 Post-hoc tests — multiple comparisons
+
+When ANOVA rejects $H_0$, it only tells us that at least two group means differ, but not which ones. Post-hoc tests identify the specific pairs of groups that differ significantly.
+
+#### 8.5.1 Tukey HSD (honestly significant difference)
+
+Tukey's test compares all possible pairs of group means while controlling the family-wise error rate. The critical difference is:
+
+$$HSD = q_{\alpha, k, N-k} \sqrt{\frac{MS_W}{n}}$$
+
+where $q_{\alpha, k, N-k}$ is the critical value of the studentized range distribution. Two means $\bar{x}_i$ and $\bar{x}_j$ are declared significantly different if $|\bar{x}_i - \bar{x}_j| > HSD$.
+
+#### 8.5.2 Bonferroni correction
+
+The Bonferroni correction is the simplest approach to multiple comparisons. For $m = k(k-1)/2$ pairwise comparisons, each individual test is performed at the significance level $\alpha / m$. It is conservative (less powerful than Tukey) but applies to any type of comparison, not only pairwise.
+
+#### 8.5.3 Summary of post-hoc methods
+
+| Method | Principle | Best suited for | Conservatism |
+|---|---|---|---|
+| Tukey HSD | Studentized range distribution. | All pairwise comparisons, balanced designs. | Moderate. |
+| Bonferroni | Adjusted $\alpha$ per comparison. | Any set of planned comparisons. | Conservative. |
+| Scheffé | Based on the F distribution. | All possible contrasts (including complex). | Very conservative. |
+| Dunnett | Compares each group to a single control. | Comparisons against a reference. | Less conservative than Bonferroni for this purpose. |
+
+### 8.6 Tests for homogeneity of variances
+
+Homogeneity of variances (homoscedasticity) is a prerequisite for the pooled t-test and for ANOVA. Several tests are available.
+
+#### 8.6.1 Bartlett test
+
+Bartlett's test is the most powerful test for comparing $k$ variances when the data are normally distributed. The test statistic is:
+
+$$\chi^2 = \frac{(N - k) \ln(s_p^2) - \sum_{i=1}^{k}(n_i - 1)\ln(s_i^2)}{1 + \frac{1}{3(k-1)}\left(\sum_{i=1}^{k}\frac{1}{n_i - 1} - \frac{1}{N - k}\right)}$$
+
+where $s_p^2 = \frac{\sum(n_i - 1)s_i^2}{N - k}$ is the pooled variance. Under $H_0$, the statistic approximately follows a $\chi^2$ distribution with $k - 1$ degrees of freedom.
+
+**Caution:** the Bartlett test is very sensitive to departures from normality. Non-normal data can lead to false rejections of $H_0$ even when variances are actually equal.
+
+#### 8.6.2 Levene test
+
+The Levene test is a robust alternative to the Bartlett test. It is less sensitive to departures from normality.
+
+**Principle:** replace each observation $x_{ij}$ by its absolute deviation from the group median (or mean):
+
+$$z_{ij} = |x_{ij} - \tilde{x}_i|$$
+
+where $\tilde{x}_i$ is the median of group $i$ (Brown-Forsythe variant, recommended). Then perform a one-way ANOVA on the $z_{ij}$ values. A significant F statistic indicates unequal variances.
+
+**Recommendation:** use the Levene test (Brown-Forsythe variant with medians) as the default test for homogeneity of variances, especially when normality is not guaranteed.
+
+### 8.7 Non-parametric alternative — Kruskal-Wallis test
+
+When the normality assumption is violated and cannot be remedied by transformation, the Kruskal-Wallis test provides a non-parametric alternative to one-way ANOVA. It compares the distributions (not just the means) of $k$ independent groups.
+
+**Procedure:**
+1. Pool all $N$ observations and rank them from 1 to $N$.
+2. Compute the sum of ranks $R_i$ for each group $i$.
+3. Compute the test statistic:
+
+$$H = \frac{12}{N(N+1)} \sum_{i=1}^{k} \frac{R_i^2}{n_i} - 3(N+1)$$
+
+Under $H_0$ (all groups come from the same distribution), $H$ approximately follows a $\chi^2$ distribution with $k - 1$ degrees of freedom for sufficiently large sample sizes ($n_i \geq 5$).
+
+**Decision rule:** reject $H_0$ if $H > \chi^2_{\alpha, k-1}$.
+
+**Note:** the Kruskal-Wallis test is less powerful than ANOVA when the normality assumption holds. It should be used only when normality cannot be reasonably assumed.
+
+### 8.8 Industrial applications — ISO 5725 and ASTM E691
+
+#### 8.8.1 ISO 5725 — accuracy (trueness and precision)
+
+ISO 5725 is a multi-part standard that deals with the accuracy of measurement methods. It uses ANOVA to decompose the total variability of measurement results into repeatability and reproducibility components.
+
+**Key definitions:**
+- **Repeatability ($r$):** the variation obtained when the same operator, using the same equipment, measures the same sample multiple times under the same conditions. The repeatability limit $r = 2.8 \times s_r$ gives the maximum expected difference between two results obtained under repeatability conditions (at the 95% confidence level).
+- **Reproducibility ($R$):** the variation obtained when different operators, different equipment, or different laboratories measure the same sample. The reproducibility limit $R = 2.8 \times s_R$ gives the maximum expected difference between two results obtained under reproducibility conditions.
+
+**Relationship:**
+
+$$s_R^2 = s_r^2 + s_L^2$$
+
+where $s_r^2$ is the repeatability variance, $s_L^2$ is the between-laboratory variance, and $s_R^2$ is the reproducibility variance.
+
+**ISO 5725-2** provides the statistical framework for organizing interlaboratory experiments and computing $s_r$ and $s_R$ using one-way ANOVA (laboratories as groups).
+
+#### 8.8.2 ASTM E691 — interlaboratory studies
+
+ASTM E691 describes the practice for conducting interlaboratory studies to determine the precision of a test method. It uses Mandel's consistency statistics to identify laboratories that produce atypical results.
+
+**Mandel h statistic (between-laboratory consistency):**
+
+$$h_i = \frac{\bar{x}_i - \bar{x}}{s_{\bar{x}}}$$
+
+where $\bar{x}_i$ is the mean of laboratory $i$, $\bar{x}$ is the grand mean, and $s_{\bar{x}}$ is the standard deviation of laboratory means. A large $|h_i|$ indicates that laboratory $i$ produces results that are biased relative to the others.
+
+**Mandel k statistic (within-laboratory consistency):**
+
+$$k_i = \frac{s_i}{s_r}$$
+
+where $s_i$ is the standard deviation of laboratory $i$ and $s_r$ is the pooled repeatability standard deviation. A large $k_i$ indicates that laboratory $i$ has unusually high variability.
+
+Critical values for $h$ and $k$ are tabulated in ASTM E691 for various numbers of laboratories and replicates. Laboratories exceeding these critical values should be investigated.
+
+### 8.9 Summary table of comparison tests
+
+| Objective | Test | Conditions | Non-parametric alternative |
+|---|---|---|---|
+| Compare one mean to a reference value. | One-sample t-test. | Normality (or $n > 30$). | Wilcoxon signed-rank test. |
+| Compare two means (independent). | Two-sample t-test (pooled or Welch). | Normality, independence. | Mann-Whitney U test. |
+| Compare two means (paired). | Paired t-test. | Normality of differences. | Wilcoxon signed-rank test. |
+| Compare two variances. | Fisher's F-test. | Normality (strict). | Levene test (robust). |
+| Compare $k$ means. | One-way ANOVA. | Normality, homoscedasticity. | Kruskal-Wallis test. |
+| Compare $k$ means (two factors). | Two-way ANOVA. | Normality, homoscedasticity. | Friedman test (for blocked designs). |
+| Identify differing pairs after ANOVA. | Tukey, Bonferroni, Scheffé, Dunnett. | Same as ANOVA. | Dunn's test (after Kruskal-Wallis). |
+| Compare $k$ variances. | Bartlett test. | Normality (strict). | Levene test (robust). |
+| Repeatability and reproducibility. | ANOVA (ISO 5725). | Normality, balanced design. | — |
+| Interlaboratory consistency. | Mandel h and k (ASTM E691). | Balanced interlaboratory design. | — |
+
+---
+
+## 9. Outlier detection (ISO 16269-4)
 
 Outliers are observations that deviate significantly from the rest of the data. They may arise from measurement errors, transcription errors, special causes, or sample contamination. ISO 16269-4 provides statistical tests to detect them.
 
-### 8.1 Grubbs test
+### 9.1 Grubbs test
 
 The Grubbs test is the most widely used test for detecting a single outlier in a sample assumed to be normally distributed.
 
@@ -1099,7 +1443,7 @@ where $\bar{x}$ is the mean and $s$ is the standard deviation of the sample.
 
 $H_0$ is rejected if $G > G_{critical}$. If an outlier is detected and removed, the test can be repeated on the reduced dataset.
 
-### 8.2 Dixon test
+### 9.2 Dixon test
 
 The Dixon test is a non-parametric alternative to the Grubbs test, particularly suited for small samples ($3 \leq n \leq 25$). It uses ratios based on order statistics (sorted data).
 
@@ -1136,7 +1480,7 @@ To test the smallest value, the indices are reversed.
 
 *The symbol "—" indicates that the corresponding statistic is not used for this sample size.*
 
-### 8.3 Comparison of Grubbs and Dixon tests
+### 9.3 Comparison of Grubbs and Dixon tests
 
 | Criterion | Grubbs | Dixon |
 |---|---|---|
@@ -1150,11 +1494,11 @@ To test the smallest value, the indices are reversed.
 
 ---
 
-## 9. Statistical tolerance intervals (ISO 16269-6)
+## 10. Statistical tolerance intervals (ISO 16269-6)
 
 A statistical tolerance interval is an interval estimated from a sample that contains at least a proportion $p$ of the population with a confidence level $\gamma$. It should not be confused with the confidence interval (which brackets a parameter) or the industrial tolerance interval (specifications imposed by the customer).
 
-### 9.1 Definitions
+### 10.1 Definitions
 
 **Two-sided tolerance interval:** an interval $[\bar{x} - k \cdot s, \, \bar{x} + k \cdot s]$ that contains at least the proportion $p$ of the population with a confidence level $\gamma$.
 
@@ -1164,7 +1508,7 @@ A statistical tolerance interval is an interval estimated from a sample that con
 
 The factor $k$ depends on the sample size $n$, the proportion $p$, and the confidence level $\gamma$.
 
-### 9.2 $k$ factors for two-sided intervals (normal distribution)
+### 10.2 $k$ factors for two-sided intervals (normal distribution)
 
 The following table gives the $k$ factors for two-sided tolerance intervals under the normality assumption, for common values of $p$ and $\gamma$:
 
@@ -1207,7 +1551,7 @@ The following table gives the $k$ factors for two-sided tolerance intervals unde
 | 50 | 2.735 | 2.882 | 3.165 |
 | 100 | 2.601 | 2.715 | 2.917 |
 
-### 9.3 $k$ factors for one-sided intervals (normal distribution)
+### 10.3 $k$ factors for one-sided intervals (normal distribution)
 
 **$p = 0{,}95$, $\gamma = 0{,}95$:**
 
@@ -1222,7 +1566,7 @@ The following table gives the $k$ factors for two-sided tolerance intervals unde
 | 50 | 1.965 |
 | 100 | 1.874 |
 
-### 9.4 Non-parametric (distribution-free) tolerance intervals
+### 10.4 Non-parametric (distribution-free) tolerance intervals
 
 When the data distribution is not normal (or cannot be verified), non-parametric tolerance intervals based on order statistics are used.
 
@@ -1242,7 +1586,7 @@ For a two-sided interval with $r = 1$ (bounds = minimum and maximum of the sampl
 
 These large sample sizes illustrate the cost of having no distributional assumption: much more data are needed to achieve the same coverage.
 
-### 9.5 Distinction between types of statistical intervals
+### 10.5 Distinction between types of statistical intervals
 
 It is essential not to confuse the different types of intervals.
 
@@ -1254,7 +1598,7 @@ It is essential not to confuse the different types of intervals.
 
 The confidence interval is always the narrowest because it targets a single parameter. The tolerance interval is the widest because it must cover an entire proportion of the population with a given confidence level.
 
-### 9.6 Practical application: verifying lot conformity
+### 10.6 Practical application: verifying lot conformity
 
 To verify that a lot satisfies a two-sided specification $[LSI, LSS]$ with at least $p = 99\%$ of the population conforming at a confidence level $\gamma = 95\%$, proceed as follows:
 1. Draw a sample of size $n$ (for example, $n = 30$).
@@ -1266,11 +1610,11 @@ To verify that a lot satisfies a two-sided specification $[LSI, LSS]$ with at le
 
 ---
 
-## 10. Measurement uncertainty (GUM, NIST)
+## 11. Measurement uncertainty (GUM, NIST)
 
 The GUM (Guide to the expression of Uncertainty in Measurement, JCGM 100:2008) is the international reference document for evaluating and expressing measurement uncertainty. The NIST Technical Note TN 1297 is a practical summary for laboratories.
 
-### 10.1 Fundamental principles
+### 11.1 Fundamental principles
 
 Every measurement is subject to uncertainty. A measurement result is complete only when accompanied by its uncertainty. Measurement uncertainty quantifies the dispersion of values that could reasonably be attributed to the measurand.
 
@@ -1280,7 +1624,7 @@ $$Y = f(X_1, X_2, \ldots, X_N)$$
 
 where $Y$ is the measurand, $X_i$ are the input quantities, and $f$ is the measurement function.
 
-### 10.2 Type A evaluation
+### 11.2 Type A evaluation
 
 Type A evaluation uses statistical analysis of a series of $n$ repeated observations.
 
@@ -1294,7 +1638,7 @@ $$s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i - \bar{x})^2}$$
 
 Type A evaluation is associated with $\nu = n - 1$ degrees of freedom.
 
-### 10.3 Type B evaluation
+### 11.3 Type B evaluation
 
 Type B evaluation uses information other than statistical: calibration certificates, manufacturer specifications, literature data, expert judgment.
 
@@ -1329,7 +1673,7 @@ For example, if a calibration certificate states $U = 0{,}1$ mg with $k = 2$, th
 | Normal | Expanded uncertainty $U$, factor $k$ | $U / k$ | Calibration certificate. |
 | U-shaped (arcsine) | Half-amplitude $a$ | $a / \sqrt{2}$ | Sinusoidal oscillation (cyclic temperature). |
 
-### 10.4 Combined uncertainty
+### 11.4 Combined uncertainty
 
 The combined uncertainty $u_c$ is obtained by the law of propagation of uncertainties (linear approximation):
 
@@ -1345,7 +1689,7 @@ $$u_c^2 = \sum_{i=1}^{N} c_i^2 \, u_i^2 + 2 \sum_{i=1}^{N-1}\sum_{j=i+1}^{N} c_i
 
 where $u(x_i, x_j)$ is the estimated covariance.
 
-### 10.5 Expanded uncertainty
+### 11.5 Expanded uncertainty
 
 The expanded uncertainty $U$ provides an interval within which the measurand lies with a given confidence level:
 
@@ -1364,7 +1708,7 @@ The factor $k = 2$ is the most commonly used and corresponds to a confidence lev
 
 $$Y = y \pm U \quad (k = 2, \text{ confidence level } \approx 95\%)$$
 
-### 10.6 Uncertainty budget — example
+### 11.6 Uncertainty budget — example
 
 An uncertainty budget is a table summarizing all uncertainty components. Here is an example for measuring a length with a caliper.
 
@@ -1381,7 +1725,7 @@ An uncertainty budget is a table summarizing all uncertainty components. Here is
 
 **Result:** $L = 25{,}032 \pm 0{,}016$ mm ($k = 2$, confidence level $\approx 95\%$).
 
-### 10.7 Degrees of freedom and the Welch-Satterthwaite formula
+### 11.7 Degrees of freedom and the Welch-Satterthwaite formula
 
 When the combined uncertainty combines components with different degrees of freedom $\nu_i$, the effective number of degrees of freedom $\nu_{eff}$ is estimated by the Welch-Satterthwaite formula:
 
@@ -1401,7 +1745,7 @@ The result is rounded down to the nearest integer. If $\nu_{eff}$ is small (typi
 | 50 | 2.01 | 2.68 |
 | $\infty$ | 1.96 | 2.58 |
 
-### 10.8 Conformity rules and uncertainty (ISO 14253-1)
+### 11.8 Conformity rules and uncertainty (ISO 14253-1)
 
 When a measurement result is compared to a specification, measurement uncertainty must be taken into account. ISO 14253-1 defines the following rules:
 
@@ -1415,7 +1759,7 @@ $$y < LSI - U \quad \text{or} \quad y > LSS + U$$
 
 **Uncertainty zone:** when the result falls between the conformity zone and the nonconformity zone, no decision can be made with certainty. This zone has a width of $2U$ on each side of the specification limit.
 
-### 10.9 Best practices for expressing uncertainty
+### 11.9 Best practices for expressing uncertainty
 
 1. Identify all sources of uncertainty (do not overlook any).
 2. Quantify each source by a standard uncertainty (Type A or Type B).
@@ -1427,32 +1771,32 @@ $$y < LSI - U \quad \text{or} \quad y > LSS + U$$
 
 ---
 
-## 11. SPC guide (ISO 11462) — implementation steps
+## 12. SPC guide (ISO 11462) — implementation steps
 
 ISO 11462-1 provides guidelines for implementing statistical process control (SPC) in an industrial environment. The standard emphasizes that SPC is a management and continuous improvement tool, and not merely a statistical calculation.
 
-### 11.1 Step 1 — management commitment
+### 12.1 Step 1 — management commitment
 
 Management must understand and support the SPC initiative. This includes:
 - Allocating resources (personnel, training, software, instruments).
 - Defining measurable objectives.
 - Integrating SPC into the quality system (ISO 9001).
 
-### 11.2 Step 2 — process identification
+### 12.2 Step 2 — process identification
 
 Identify the critical processes that have a significant impact on product quality. Use tools such as:
 - FMEA (Failure Mode and Effects Analysis) to prioritize risks.
 - Process flow diagram to understand key steps.
 - Pareto analysis to identify the main sources of nonconformity.
 
-### 11.3 Step 3 — measurement system analysis
+### 12.3 Step 3 — measurement system analysis
 
 Before collecting SPC data, verify that the measurement system is adequate (section 6):
 - GRR study: %GRR $< 10\%$ (acceptable) or $< 30\%$ (marginal).
 - Number of distinct categories $ndc \geq 5$.
 - Linearity and stability of the measurement device.
 
-### 11.4 Step 4 — data collection
+### 12.4 Step 4 — data collection
 
 Define a data collection plan including:
 - The characteristic to be monitored.
@@ -1460,7 +1804,7 @@ Define a data collection plan including:
 - The sampling method (random within a homogeneous subgroup).
 - The minimum number of subgroups for the study phase (at least 25, according to ISO 7870-2).
 
-### 11.5 Step 5 — control chart selection
+### 12.5 Step 5 — control chart selection
 
 The choice of control chart depends on the type of data and production conditions.
 
@@ -1474,14 +1818,14 @@ The choice of control chart depends on the type of data and production condition
 | Attributes (number of defects) | Constant | $c$ |
 | Attributes (defect rate) | Variable | $u$ |
 
-### 11.6 Step 6 — control limit calculation
+### 12.6 Step 6 — control limit calculation
 
 Calculate the control limits from the study phase data, using the formulas in section 4. Verify that:
 - No point falls outside the limits during the study phase.
 - No non-random pattern is detected (Western Electric rules, section 4.3).
 - If out-of-control points are identified and the special cause is found and eliminated, recalculate the limits after excluding those points.
 
-### 11.7 Step 7 — process monitoring
+### 12.7 Step 7 — process monitoring
 
 Implement the control chart in production:
 - Plot new data in real time.
@@ -1489,7 +1833,7 @@ Implement the control chart in production:
 - Train operators on chart interpretation.
 - Document events (lot changes, adjustments, etc.).
 
-### 11.8 Step 8 — out-of-control action plan (OCAP)
+### 12.8 Step 8 — out-of-control action plan (OCAP)
 
 The OCAP (Out-of-Control Action Plan) defines the actions to be taken when an out-of-control signal is detected. It must include:
 - Identification of the special cause (the 5Ms: material, machine, method, manpower, environment).
@@ -1498,7 +1842,7 @@ The OCAP (Out-of-Control Action Plan) defines the actions to be taken when an ou
 - Verification of the effectiveness of the corrective action.
 - Possible update of the control limits.
 
-### 11.9 Step 9 — continuous improvement
+### 12.9 Step 9 — continuous improvement
 
 SPC is not limited to monitoring: it is a continuous improvement tool (PDCA). The long-term objectives are:
 - Reduce process variability (increase $C_{pk}$).
@@ -1515,7 +1859,7 @@ SPC is not limited to monitoring: it is a continuous improvement tool (PDCA). Th
 
 ---
 
-## 12. Summary and interconnections — cross-reference table
+## 13. Summary and interconnections — cross-reference table
 
 The following table shows how the different standards and methods interconnect. Each row represents a standard, and each column indicates whether that standard is related to a given domain.
 
@@ -1527,6 +1871,7 @@ The following table shows how the different standards and methods interconnect. 
 | **ISO 22514-2** (process capability) | — | Requires a process under control (SPC). | Yes (primary). | Normality assumption required for indices. | Outliers distort indices. | Measurement system contributes to variability. | Indices are related to tolerance intervals. |
 | **ISO 22514-7** (measurement capability) | — | Prerequisite for reliable SPC. | Prerequisite for reliable capability. | — | — | Related to measurement uncertainty. | — |
 | **ISO 5479** (normality) | — | Prerequisite for I-MR. | Prerequisite for $C_p$, $C_{pk}$. | Yes (primary). | Should be performed before outlier test. | — | Prerequisite for parametric intervals. |
+| **ISO 5725 / ASTM E691** (ANOVA, comparison) | — | ANOVA decomposes SPC variability sources. | Repeatability/reproducibility affect capability. | Normality assumed for t-test and ANOVA. | Mandel statistics detect atypical laboratories. | $s_r$ and $s_R$ contribute to uncertainty budget. | — |
 | **ISO 16269-4** (outliers) | Outliers in the sample distort the decision. | Outliers generate false alarms. | Outliers distort $C_{pk}$. | Grubbs assumes normality. | Yes (primary). | — | Outliers widen intervals. |
 | **ISO 16269-6** (tolerance intervals) | — | — | Related to the concept of capability. | Parametric intervals assume normality. | Outliers affect the bounds. | — | Yes (primary). |
 | **ISO 11462** (SPC guide) | — | Yes (implementation guide). | Integrates capability into the SPC approach. | Mentions normality verification. | — | Mentions measurement system validation. | — |
@@ -1547,11 +1892,11 @@ The following table shows how the different standards and methods interconnect. 
 
 ---
 
-## 13. Documents indexed in the RAG
+## 14. Documents indexed in the RAG
 
 The following documents are available in the RAG statistical collection and can be queried for more detailed information.
 
-### 13.1 Sampling standards
+### 14.1 Sampling standards
 
 | Reference | Title | Main content |
 |---|---|---|
@@ -1559,7 +1904,7 @@ The following documents are available in the RAG statistical collection and can 
 | **ISO 2859-2** | Sampling procedures for inspection by attributes — Part 2: sampling plans indexed by limiting quality (LQ) for isolated lot inspection. | Plans for isolated lots, tables indexed by LQ. |
 | **ISO 3951-1** | Sampling procedures for inspection by variables — Part 1: specification for single sampling plans indexed by acceptance quality limit (AQL). | Methods $s$ and $\sigma$, acceptability constant $k$, one-sided and two-sided specifications. |
 
-### 13.2 SPC and control chart standards
+### 14.2 SPC and control chart standards
 
 | Reference | Title | Main content |
 |---|---|---|
@@ -1568,7 +1913,7 @@ The following documents are available in the RAG statistical collection and can 
 | **ASTM E2587** | Standard Practice for Use of Control Charts in Statistical Process Control. | Practical guide for control chart implementation, numerical examples. |
 | **ISO 11462-1** | Guidelines for implementation of statistical process control (SPC) — Part 1: elements of SPC. | Implementation steps, organization, training, continuous improvement. |
 
-### 13.3 Capability standards
+### 14.3 Capability standards
 
 | Reference | Title | Main content |
 |---|---|---|
@@ -1576,7 +1921,7 @@ The following documents are available in the RAG statistical collection and can 
 | **ISO 22514-2** | Statistical methods in process management — Capability and performance — Part 2: capability and performance of time-dependent quantitative quality characteristics. | $C_p$, $C_{pk}$, $P_p$, $P_{pk}$ indices, calculation methods. |
 | **ISO 22514-7** | Statistical methods in process management — Capability and performance — Part 7: capability of measurement processes. | $C_g$, $C_{gk}$ indices, GRR study, %GRR, ndc. |
 
-### 13.4 Statistical tests and intervals standards
+### 14.4 Statistical tests and intervals standards
 
 | Reference | Title | Main content |
 |---|---|---|
@@ -1584,7 +1929,7 @@ The following documents are available in the RAG statistical collection and can 
 | **ISO 16269-4** | Statistical interpretation of data — Part 4: detection and treatment of outliers. | Grubbs and Dixon tests, critical value tables. |
 | **ISO 16269-6** | Statistical interpretation of data — Part 6: determination of statistical tolerance intervals. | Parametric and non-parametric intervals, $k$ factor tables. |
 
-### 13.5 International guides for uncertainty
+### 14.5 International guides for uncertainty
 
 | Reference | Title | Main content |
 |---|---|---|
