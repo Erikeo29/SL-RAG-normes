@@ -12,7 +12,7 @@ CHROMA_PATH = os.path.join(DATA_PATH, "chroma_db")
 
 # --- Version ---
 VERSION = "1.0.0"
-VERSION_DATE = "Mar 2026"
+VERSION_DATE = "Jan 2026"
 
 # --- RAG ---
 CHUNK_SIZE = 1000

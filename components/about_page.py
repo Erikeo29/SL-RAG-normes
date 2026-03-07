@@ -28,6 +28,15 @@ def _render_fr(stats: dict):
         "en langage naturel sur les documents charges."
     )
 
+    st.warning(
+        "**Prototype** — Cette application est un outil exploratoire. Les normes et "
+        "reglementations indexees sont des documents publics dont l'actualite et "
+        "l'exactitude doivent etre verifiees avant toute utilisation a des fins de "
+        "conformite. L'assistant IA est un guide : il peut commettre des erreurs ou "
+        "des omissions. Pour toute decision reglementaire, referez-vous systematiquement "
+        "aux textes officiels dans leur version en vigueur."
+    )
+
     st.markdown("---")
 
     st.subheader("Domaine couvert")
@@ -41,9 +50,6 @@ def _render_fr(stats: dict):
         "- **Chat RAG** : posez des questions en langage naturel, obtenez des reponses "
         "avec references aux documents sources\n"
         "- **Synthese des normes** : vue d'ensemble structuree des normes medicales\n"
-        "- **Gestion des documents** : upload, indexation et suppression de PDFs\n"
-        "- **Matrice de compliance** : evaluez la conformite par referentiel "
-        "(FDA, ISO...) avec recherche RAG integree\n"
         "- **Bilingue** : francais et anglais"
     )
 
@@ -85,18 +91,8 @@ def _render_fr(stats: dict):
 
     st.markdown("---")
 
-    st.subheader("Documents actuellement indexes")
-    if stats["sources"]:
-        for src in stats["sources"]:
-            st.markdown(f"- {src}")
-        st.caption(f"{stats['documents']} documents, {stats['chunks']} chunks")
-    else:
-        st.caption("Aucun document indexe.")
-
-    st.markdown("---")
-
     st.caption(
-        "Note : les documents charges dans ce RAG sont des documents publics et gratuits."
+        "Les documents charges dans ce RAG sont des documents publics et gratuits."
     )
 
 
@@ -111,6 +107,14 @@ def _render_en(stats: dict):
         "questions on uploaded documents."
     )
 
+    st.warning(
+        "**Prototype** — This application is an exploratory tool. The indexed standards "
+        "and regulations are public documents whose currency and accuracy must be "
+        "verified before any compliance use. The AI assistant is a guide: it may "
+        "produce errors or omissions. For any regulatory decision, always refer to "
+        "the official texts in their current version."
+    )
+
     st.markdown("---")
 
     st.subheader("Domain covered")
@@ -123,9 +127,6 @@ def _render_en(stats: dict):
     st.markdown(
         "- **RAG Chat**: ask natural language questions, get answers with source references\n"
         "- **Standards overview**: structured summary of medical device standards\n"
-        "- **Document management**: upload, index and delete PDFs\n"
-        "- **Compliance matrix**: assess conformity by standard "
-        "(FDA, ISO...) with integrated RAG search\n"
         "- **Bilingual**: French and English"
     )
 
@@ -167,16 +168,6 @@ def _render_en(stats: dict):
 
     st.markdown("---")
 
-    st.subheader("Currently indexed documents")
-    if stats["sources"]:
-        for src in stats["sources"]:
-            st.markdown(f"- {src}")
-        st.caption(f"{stats['documents']} documents, {stats['chunks']} chunks")
-    else:
-        st.caption("No documents indexed.")
-
-    st.markdown("---")
-
     st.caption(
-        "Note: all documents loaded in this RAG are free, publicly available documents."
+        "All documents loaded in this RAG are free, publicly available documents."
     )

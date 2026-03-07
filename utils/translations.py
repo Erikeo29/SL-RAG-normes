@@ -62,17 +62,21 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "version_info": {
         "fr": (
-            "**Version 1.0.0** — Mars 2026\n\n"
-            "**App dediee normes medicales**\n"
+            "**Version 1.0.0** — Janv 2026\n\n"
+            "**Nouveautes :**\n"
             "- Base vectorielle pre-indexee\n"
             "- Synchronisation depuis dossier"
         ),
         "en": (
-            "**Version 1.0.0** — Mar 2026\n\n"
-            "**Dedicated medical standards app**\n"
+            "**Version 1.0.0** — Jan 2026\n\n"
+            "**New features:**\n"
             "- Pre-indexed vector store\n"
             "- Directory sync"
         ),
+    },
+    "upload_locked_hint": {
+        "fr": "Reserve a l'administrateur",
+        "en": "Administrator only",
     },
     # --- Upload page ---
     "upload_title": {
